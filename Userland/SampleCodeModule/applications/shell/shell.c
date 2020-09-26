@@ -39,7 +39,12 @@ static void initShell(t_shellData* shellData) {
           {&changeUsername, "changeUsername", "changes the shell prompt username"},
           {&checkZeroException, "checkZeroException", "triggers a zero division exception"},
           {&checkInvalidOpcodeException, "checkInvalidOpcodeException", "triggers an invalid opcode exception"},
-          {&showArgs, "showArgs", "prints the arguments passed to this command"}};
+          {&showArgs, "showArgs", "prints the arguments passed to this command"},
+          {&ps, "ps", "report a snapshot of the current processes"},
+          {&loop, "loop", "loops process"},
+          {&kill, "kill", "kills process with the given pid"},
+          {&nice, "nice", "changes the priority of process with given pid"},
+          {&block, "block", "blocks or unblocks process with given pid"}};
 
       for (int i = 0; i < COMMANDS; i++) {
             shellData->commands[i].command = commandsData[i].command;
@@ -99,7 +104,6 @@ static void processCommand(t_shellData * shellData) {
       };
 
       strtok(0, 0, ' ');
-      
       for (int i = 0; i < COMMANDS; i++) {
             if (stringcmp(shellData->commands[i].name, command) == 0) {
                   shellData->commands[i].command(argc, argv, shellData);

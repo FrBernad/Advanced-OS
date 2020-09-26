@@ -5,8 +5,11 @@
 #include <stddef.h>
 #include <stringLib.h>
 #include <taskManager.h>
+#include <timerTick.h>
 
 #define SIZE_OF_STACK 4 * 1024
+#define DEFAULT_PRIORITY 1
+#define MAX_PRIORITY 30
 
 typedef struct {
       uint64_t gs;
@@ -41,6 +44,7 @@ typedef enum { READY,
 
 typedef struct {
       uint64_t pid;
+      uint64_t priority;
       char* name;
       void* rsp;
       void* rbp;
@@ -64,16 +68,19 @@ static uint64_t newPid();
 static void idleFunction(int argc, char** argv);
 static void wrapper(void (*entryPoint)(int, char**), int argc, char** argv);
 static void exit();
-static void killProcess(uint64_t pid);
 
 static void enqueueProcess(t_pNode* newProcess);
 static t_pNode* dequeueProcess();
 static int queueIsEmpty();
 static void removeProcess(t_pNode* process);
 static void dumpProcesses();
+static void dumpProcess(t_PCB process);
+static t_pNode* getProcessByPID(uint64_t pid);
+static void loopFunction(int argc, char** argv);
 
 static t_pList* processes;
 static t_pNode* currentProcess;
+static uint64_t currentProcessTicksLeft;
 static t_pNode* idleProcess;
 static uint64_t maxPid = 1;
 
@@ -89,30 +96,34 @@ void initScheduler() {
 }
 
 void* scheduler(void* oldRSP) {
-      // printString("processes: ");
-      // dumpProcesses();
       if (currentProcess != NULL) {
-            currentProcess->pcb.rsp = oldRSP;
-            if (currentProcess->pcb.state == KILLED){
-                  removeProcess(currentProcess);
+            if (currentProcess->pcb.state == READY && currentProcessTicksLeft > 0) {
+                  currentProcessTicksLeft--;
+                  return oldRSP;
             }
-            else
+
+            currentProcess->pcb.rsp = oldRSP;
+
+            if (currentProcess->pcb.state == KILLED) {
+                  removeProcess(currentProcess);
+            } else
                   enqueueProcess(currentProcess);
       }
+
       if (processes->size > 0) {
             currentProcess = dequeueProcess();
             while (currentProcess->pcb.state != READY) {
                   if (currentProcess->pcb.state == KILLED) {
                         removeProcess(currentProcess);
-                  }
+                  } else if (currentProcess->pcb.state == BLOCKED)
+                        enqueueProcess(currentProcess);
+
                   currentProcess = dequeueProcess();
             }
-      }else
-            currentProcess=idleProcess;
-      
-      // printString("Running process with pid ");
-      // printInt(currentProcess->pcb.pid);
-      // printStringLn("");
+      } else
+            currentProcess = idleProcess;
+
+      currentProcessTicksLeft = currentProcess->pcb.priority;
 
       return currentProcess->pcb.rsp;
 }
@@ -132,24 +143,51 @@ int addProcess(void (*entryPoint)(int, char**), int argc, char** argv) {
       initializeStackFrame(entryPoint, argc, argv, newProcess->pcb.rbp);
       enqueueProcess(newProcess);
 
-      // printString("Adding process ");
-      // printString(argv[0]);
-      // printString(" with pid ");
-      // printInt(newProcess->pcb.pid);
-      // printStringLn("");
-
       return 1;
 }
 
-void resetCurrentProcess() {
-      // if (queueIsEmpty(&taskManager)) {
-      //       return;
-      // }
-      // t_PCB currentProcess;
-      // queuePeek(&taskManager,&currentProcess);
-      // initializeStackFrame(currentProcess.entryPoint, argc, argv, currentProcess.rbp);
-      // queueUpdateFirst(&taskManager,&currentProcess);
-      // sys_forceStart();
+void listProcesses() {
+      printfBR("PID    CMD    PRIO    STATE    RSP    RBP\n");
+      if (currentProcess != NULL) {
+            dumpProcess(currentProcess->pcb);
+      }
+      dumpProcesses();
+}
+
+void killProcess(uint64_t pid) {
+      t_pNode* p = getProcessByPID(pid);
+      if (p != NULL) {
+            p->pcb.state = KILLED;
+      }
+}
+
+void resignCPU() {
+      exit();
+}
+
+void changePriority(uint64_t pid, uint64_t priority) {
+      if (priority > MAX_PRIORITY)
+            return;
+
+      t_pNode* p = getProcessByPID(pid);
+      if (p != NULL)
+            p->pcb.priority = priority;
+}
+
+void blockProcess(uint64_t pid) {
+      t_pNode* p = getProcessByPID(pid);
+      if (p != NULL) {
+            if (p->pcb.state == READY) {
+                  p->pcb.state = BLOCKED;
+            } else if (p->pcb.state == BLOCKED) {
+                  p->pcb.state = READY;
+            }
+      }
+}
+
+void loopProcess() {
+      char* args[] = {"Loop!!!"};
+      addProcess(loopFunction, 1, args);
 }
 
 static int initProcess(t_PCB* process, char* name) {
@@ -161,18 +199,12 @@ static int initProcess(t_PCB* process, char* name) {
       process->rbp = (void*)((char*)process->rbp + SIZE_OF_STACK - 1);
       process->rsp = (void*)((t_stackFrame*)process->rbp - 1);
       process->state = READY;
+      process->priority = DEFAULT_PRIORITY;
       return 0;
 }
 
 static void wrapper(void (*entryPoint)(int, char**), int argc, char** argv) {
       entryPoint(argc, argv);
-
-      // printString("Ending process ");
-      // printString(argv[0]);
-      // printString("with pid ");
-      // printInt(currentProcess->pcb.pid);
-      // printStringLn("");
-
       exit();
 }
 
@@ -223,17 +255,26 @@ static void enqueueProcess(t_pNode* newProcess) {
       processes->size++;
 }
 
+static void dumpProcess(t_PCB process) {
+      char* state;
+      switch (process.state) {
+            case READY:
+                  state = "READY";
+                  break;
+            case BLOCKED:
+                  state = "BLOCKED";
+                  break;
+            default:
+                  state = "KILLED";
+                  break;
+      }
+      printfBR("%d    %s    %d    %s    %x    %x    \n", process.pid, process.name, process.priority, state, (uint64_t)process.rsp, (uint64_t)process.rbp);
+}
+
 static void dumpProcesses() {
-      if(processes->size == 0){
-            printStringLn("Empty");
-            return;
-      }
       for (t_pNode* p = processes->first; p != NULL; p = p->next) {
-            printString("process ");
-            printInt(p->pcb.pid);
-            printString(" ");
+            dumpProcess(p->pcb);
       }
-      printStringLn("");
 }
 
 static t_pNode* dequeueProcess() {
@@ -252,6 +293,7 @@ static void removeProcess(t_pNode* process) {
 }
 
 static void idleFunction(int argc, char** argv) {
+      printStringLn("Running idle");
       while (1)
             _hlt();
 }
@@ -261,13 +303,23 @@ static void exit() {
       callTimerTick();
 }
 
-static void killProcess(uint64_t pid) {
-      if(currentProcess->pcb.pid==pid){
-            currentProcess->pcb.state = KILLED;
-            return;
+static t_pNode* getProcessByPID(uint64_t pid) {
+      if (currentProcess != NULL) {
+            if (currentProcess->pcb.pid == pid)
+                  return currentProcess;
       }
+
       for (t_pNode* p = processes->first; p != NULL; p = p->next) {
             if (p->pcb.pid == pid)
-                  p->pcb.state = KILLED;
+                  return p;
+      }
+
+      return NULL;
+}
+
+static void loopFunction(int argc, char** argv) {
+      while (1) {
+            sleep(4);
+            printfBR("\n\nID: %d\nHi, im a looped process", currentProcess->pcb.pid);
       }
 }

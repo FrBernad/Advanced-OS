@@ -9,7 +9,11 @@
 void initScheduler();
 void* scheduler(void* oldRSP);
 int addProcess(void (*entryPoint)(int, char**), int argc, char** argv);
-void killCurrentProcess();
-void resetCurrentProcess();
+void listProcesses();
+void killProcess(uint64_t pid);
+void changePriority(uint64_t pid, uint64_t priority);
+void blockProcess(uint64_t pid);
+void loopProcess();
+void resignCPU();
 
 #endif

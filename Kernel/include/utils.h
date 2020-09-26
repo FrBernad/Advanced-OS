@@ -23,5 +23,6 @@ int ticksElapsed();
 void cleanBuffer(t_buffer *buffer);
 void cleanString(char *str);
 int strlen(char *str);
+char *itoa(int value, char *buffer, int base);
 
 #endif

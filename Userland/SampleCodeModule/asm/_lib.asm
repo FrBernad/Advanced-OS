@@ -59,17 +59,6 @@ syscall:
 
     ret
 
-sys_changeApp:
-    push rbp
-    mov rbp, rsp
-
-    int 81h
-
-    mov rsp, rbp
-    pop rbp
-
-    ret
-
 cpuVendor:
 	push rbp
 	mov rbp, rsp

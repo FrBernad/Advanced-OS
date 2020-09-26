@@ -11,6 +11,11 @@ int ticksElapsed() {
       return ticks;
 }
 
+void sleep(int segs){
+      int timeout=secondsElapsed()+segs;
+      while(secondsElapsed()<=timeout);
+}
+
 int secondsElapsed() {
 	return ticks / 18;
 }

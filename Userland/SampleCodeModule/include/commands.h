@@ -32,6 +32,21 @@ void checkZeroException(int argc,char ** args, t_shellData * shellData);
 void checkInvalidOpcodeException(int argc, char **args, t_shellData * shellData);
 
 //shows arguments
-void showArgs(int argc, char **args, t_shellData * shellData);
+void showArgs(int argc, char **args, t_shellData *shellData);
+
+//list processes
+void ps(int argc, char **args, t_shellData *shellData);
+
+// Imprime su ID con un saludo cada una determinada cantidad de segundos.
+void loop(int argc, char **args, t_shellData *shellData);
+
+// Mata un proceso dado su ID.
+void kill(int argc, char **args, t_shellData *shellData);
+
+// Cambia la prioridad de un proceso dado su ID y la nueva prioridad.
+void nice(int argc, char **args, t_shellData *shellData);
+
+// Cambia el estado de un proceso entre bloqueado y listo dado su ID.
+void block(int argc, char **args, t_shellData *shellData);
 
 #endif

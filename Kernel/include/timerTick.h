@@ -4,5 +4,6 @@
 void timerHandler();
 int ticksElapsed();
 int secondsElapsed();
+void sleep(int segs);
 
 #endif
