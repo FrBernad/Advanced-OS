@@ -1,1 +1,9 @@
 /Consigna.pdf
+.ssh
+.vscode-server
+.gitconfig
+.vs-liveshare-keychain
+.cache
+.gitignore
+.bash_history
+.local
