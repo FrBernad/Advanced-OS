@@ -1,5 +1,6 @@
 #include <buffer.h>
 #include <stringLib.h>
+#include <systemCalls.h>
 #include <utils.h>
 
 //sacada de nvconsole
@@ -398,4 +399,9 @@ char *itoa(int value, char *buffer, int base) {
 
       // reverse the string and return it
       return reverse(buffer, 0, i - 1);
+}
+
+void sleep(int segs){
+      int timeout=syscall(SECS_ELAPSED,0,0,0,0,0,0)+segs;
+      while(syscall(SECS_ELAPSED,0,0,0,0,0,0)<=timeout);
 }

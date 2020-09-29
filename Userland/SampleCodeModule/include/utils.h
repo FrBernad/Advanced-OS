@@ -28,5 +28,6 @@ void doubleToString(char *res, double total, int afterpoint);
 void reverse2(char *str, int len);
 int intToStr(int x, char str[], int d);
 char *itoa(int value, char *buffer, int base);
+void sleep(int segs);
 
 #endif

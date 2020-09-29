@@ -8,7 +8,8 @@
 
 static void memToString(char* buffer, uint8_t* mem, int bytes);
 static void invalidOpcodeTrigger();
-static void zeroDivisionTrigger();
+static void zeroDivisionTrigger();\
+static void loopFunction(int argc, char** argv);
 
 //devuelve el tiempo acutal del sistema
 void time(int argc, char** args, t_shellData* shellData) {
@@ -149,7 +150,16 @@ void loop(int argc, char** args, t_shellData* shellData){
       if (argc != 0) {
             printfBR("Invalid ammount of arguments.\n");
       }
-      syscall(LOOP, 0, 0, 0, 0, 0, 0);
+      char* args2[] = {"Loop!!!"};
+      syscall(LOAD_APP, (uint64_t)loopFunction, 1, (uint64_t)args2, 0, 0, 0);
+}
+
+static void loopFunction(int argc, char** argv) {
+      uint64_t pid = syscall(GETPID, 0, 0, 0, 0, 0, 0);
+      while (1) {
+            sleep(3);
+            printfBR("\n\nID: %d\n", pid);
+      }
 }
 
 // Mata un proceso dado su ID.

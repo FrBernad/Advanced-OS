@@ -1,6 +1,7 @@
 #include <RTCTime.h>
 #include <keyboardDriver.h>
 #include <lib.h>
+#include <timerTick.h>
 #include <stringLib.h>
 #include <sysCallDispatcher.h>
 #include <taskManager.h>
@@ -15,12 +16,13 @@
 #define SYS_LOAD_APP_ID 6
 #define SYS_INFOREG_ID 7
 #define SYS_PS_ID 8
-#define SYS_LOOP_ID 9
+#define SYS_SECS_ELAPSED_ID 9
 #define SYS_KILL_ID 10
 #define SYS_NICE_ID 11
 #define SYS_BLOCK_ID 12
+#define SYS_GETPID_ID 13
 
-#define SYSCALLS 13
+#define SYSCALLS 14
 
 uint64_t sysCallDispatcher(t_registers *r) {
       if (r->rax >= 0 && r->rax < SYSCALLS){
@@ -61,8 +63,8 @@ uint64_t sysCallDispatcher(t_registers *r) {
                         listProcesses();
                         break;
 
-                  case SYS_LOOP_ID:
-                        loopProcess();
+                  case SYS_SECS_ELAPSED_ID:
+                        return secondsElapsed();
                         break;
 
                   case SYS_KILL_ID:
@@ -75,6 +77,10 @@ uint64_t sysCallDispatcher(t_registers *r) {
 
                   case SYS_BLOCK_ID:
                         blockProcess((uint64_t)r->rdi);
+                        break;
+
+                  case SYS_GETPID_ID:
+                        return currentProcessPid();
                         break;
             }
       }

@@ -13,7 +13,7 @@ void listProcesses();
 void killProcess(uint64_t pid);
 void changePriority(uint64_t pid, uint64_t priority);
 void blockProcess(uint64_t pid);
-void loopProcess();
 void resignCPU();
+uint64_t currentProcessPid();
 
 #endif

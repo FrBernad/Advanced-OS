@@ -76,7 +76,6 @@ static void removeProcess(t_pNode* process);
 static void dumpProcesses();
 static void dumpProcess(t_PCB process);
 static t_pNode* getProcessByPID(uint64_t pid);
-static void loopFunction(int argc, char** argv);
 
 static t_pList* processes;
 static t_pNode* currentProcess;
@@ -148,9 +147,9 @@ int addProcess(void (*entryPoint)(int, char**), int argc, char** argv) {
 
 void listProcesses() {
       printfBR("PID    CMD    PRIO    STATE    RSP    RBP\n");
-      if (currentProcess != NULL) {
+      if (currentProcess != NULL) 
             dumpProcess(currentProcess->pcb);
-      }
+      
       dumpProcesses();
 }
 
@@ -185,9 +184,8 @@ void blockProcess(uint64_t pid) {
       }
 }
 
-void loopProcess() {
-      char* args[] = {"Loop!!!"};
-      addProcess(loopFunction, 1, args);
+uint64_t currentProcessPid(){
+      return currentProcess ? currentProcess->pcb.pid : 0;
 }
 
 static int initProcess(t_PCB* process, char* name) {
@@ -315,11 +313,4 @@ static t_pNode* getProcessByPID(uint64_t pid) {
       }
 
       return NULL;
-}
-
-static void loopFunction(int argc, char** argv) {
-      while (1) {
-            sleep(4);
-            printfBR("\n\nID: %d\nHi, im a looped process", currentProcess->pcb.pid);
-      }
 }
