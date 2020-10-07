@@ -3,7 +3,7 @@
 
 #include <buffer.h>
 
-#define COMMANDS 15
+#define COMMANDS 18
 #define MAX_ARGS 4
 
 typedef struct t_command t_command;
@@ -21,6 +21,6 @@ typedef struct t_shellData {
       char username[BUFFER_SIZE];
 } t_shellData;
 
-void runShell(int argc, char const *argv[]);
+void runShell(int argc, char *argv[]);
 
 #endif

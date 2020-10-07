@@ -6,11 +6,11 @@
 static int processString(char const* fmt, va_list arg);
 
 void printString(char* str) {
-      syscall(WRITE, (uint64_t)str, strlen(str), BLACK, WHITE, 0,0);
+      sys_write(str, strlen(str), BLACK, WHITE);
 }
 
 void printStringWC(char* str, t_colour bgColour, t_colour fontColour) {
-      syscall(WRITE, (uint64_t)str, strlen(str), bgColour, fontColour, 0, 0);
+      sys_write(str, strlen(str), bgColour, fontColour);
 }
 
 void printStringLn(char* str) {
@@ -19,15 +19,15 @@ void printStringLn(char* str) {
 }
 
 char getchar(){
-      return syscall(GETCHAR, 0, 0, 0, 0, 0, 0);
+      return sys_getchar();
 }
 
 void putchar(char c) {
-      syscall(WRITE, (uint64_t)&c, 1, BLACK, WHITE, 0, 0);
+      sys_write(&c, 1, BLACK, WHITE);
 }
 
 void putcharWC(char c, t_colour bgColour, t_colour fontColour) {
-      syscall(WRITE, (uint64_t)&c, 1, bgColour, fontColour, 0, 0);
+      sys_write(&c, 1, bgColour, fontColour);
 }
 
 void printHex(uint64_t num) {
@@ -49,7 +49,7 @@ void printInt(uint64_t num) {
 }
 
 void clear() {
-      syscall(CLEAR, 0, 0, 0, 0, 0, 0);
+      sys_clear();
 }
 
 void deletechar() {

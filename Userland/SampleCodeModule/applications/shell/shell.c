@@ -17,7 +17,7 @@ static char* regNames[] = {"R15: ", "R14: ", "R13: ", "R12: ", "R11: ", "R10: ",
                            "R8: ", "RSI: ", "RDI: ", "RBP: ", "RDX: ", "RCX: ", "RBX: ",
                            "RAX: ", "RIP: ", "RSP: "};
 
-void runShell(int argc, char const* argv[]) {
+void runShell(int argc, char * argv[]) {
       t_shellData shellData;
       initShell(&shellData);
       char c;
@@ -44,7 +44,10 @@ static void initShell(t_shellData* shellData) {
           {&loop, "loop", "loops process"},
           {&kill, "kill", "kills process with the given pid"},
           {&nice, "nice", "changes the priority of process with given pid"},
-          {&block, "block", "blocks or unblocks process with given pid"}};
+          {&block, "block", "blocks or unblocks process with given pid"},
+          {&testProcesses, "testProcesses", "test scheduler"},
+          {&testPriority, "testPriority", "test scheduler"},
+          {&testMM, "testMM", "tests memory manager"}};
 
       for (int i = 0; i < COMMANDS; i++) {
             shellData->commands[i].command = commandsData[i].command;
@@ -62,7 +65,7 @@ static void processChar(char c, t_shellData * shellData) {
       if (c != 0) {
             switch (c) {
                   case CLEAR_SCREEN:
-                        syscall(CLEAR,0,0,0,0,0,0);
+                        sys_clear();
                         cleanBuffer(&shellData->buffer);
                         shellText(shellData);
                         break;
@@ -127,7 +130,7 @@ void inforeg(int argc, char** args, t_shellData* shellData) {
             putchar('\n');
             return;
       }
-      uint64_t* regData = (uint64_t*)syscall(INFOREG, 0, 0, 0, 0, 0, 0);
+      uint64_t* regData = sys_inforeg();
       for (int i = 0; i < REGISTERS; i++) {
             printString(" > ");
             printString(regNames[i]);

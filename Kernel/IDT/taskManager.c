@@ -9,7 +9,7 @@
 
 #define SIZE_OF_STACK 4 * 1024
 #define DEFAULT_PRIORITY 1
-#define MAX_PRIORITY 30
+#define MAX_PRIORITY 36
 
 typedef struct {
       uint64_t gs;
@@ -127,7 +127,7 @@ void* scheduler(void* oldRSP) {
       return currentProcess->pcb.rsp;
 }
 
-int addProcess(void (*entryPoint)(int, char**), int argc, char** argv) {
+uint64_t addProcess(void (*entryPoint)(int, char**), int argc, char** argv) {
       if (entryPoint == NULL)
             return 0;
 
@@ -139,41 +139,52 @@ int addProcess(void (*entryPoint)(int, char**), int argc, char** argv) {
       if (initProcess(&newProcess->pcb, argv[0]) == 1)
             return 0;
 
+      
       initializeStackFrame(entryPoint, argc, argv, newProcess->pcb.rbp);
       enqueueProcess(newProcess);
 
-      return 1;
+      return newProcess->pcb.pid;
 }
 
 void listProcesses() {
       printfBR("PID    CMD    PRIO    STATE    RSP    RBP\n");
-      if (currentProcess != NULL) 
+      if (currentProcess != NULL)
             dumpProcess(currentProcess->pcb);
-      
+
       dumpProcesses();
 }
 
-void killProcess(uint64_t pid) {
+uint64_t killProcess(uint64_t pid) {
       t_pNode* p = getProcessByPID(pid);
       if (p != NULL) {
             p->pcb.state = KILLED;
+            return pid;
       }
+      return 0;
 }
 
 void resignCPU() {
       exit();
 }
 
-void changePriority(uint64_t pid, uint64_t priority) {
-      if (priority > MAX_PRIORITY)
-            return;
-
-      t_pNode* p = getProcessByPID(pid);
-      if (p != NULL)
-            p->pcb.priority = priority;
+void yield() {
+      currentProcessTicksLeft = 0;
+      callTimerTick();
 }
 
-void blockProcess(uint64_t pid) {
+uint64_t changePriority(uint64_t pid, uint64_t priority) {
+      if (priority > MAX_PRIORITY)
+            return 0;
+
+      t_pNode* p = getProcessByPID(pid);
+      if (p != NULL){
+            p->pcb.priority = priority;
+            return pid;
+      }
+      return 0;
+}
+
+uint64_t blockProcess(uint64_t pid) {
       t_pNode* p = getProcessByPID(pid);
       if (p != NULL) {
             if (p->pcb.state == READY) {
@@ -181,10 +192,12 @@ void blockProcess(uint64_t pid) {
             } else if (p->pcb.state == BLOCKED) {
                   p->pcb.state = READY;
             }
+            return pid;
       }
+      return 0;
 }
 
-uint64_t currentProcessPid(){
+uint64_t currentProcessPid() {
       return currentProcess ? currentProcess->pcb.pid : 0;
 }
 

@@ -49,4 +49,13 @@ void nice(int argc, char **args, t_shellData *shellData);
 // Cambia el estado de un proceso entre bloqueado y listo dado su ID.
 void block(int argc, char **args, t_shellData *shellData);
 
+// Memory manager test
+void testMM(int argc, char **args, t_shellData *shellData);
+
+// Processes test
+void testProcesses(int argc, char **args, t_shellData *shellData);
+
+// Priorities test
+void testPriority(int argc, char **args, t_shellData *shellData);
+
 #endif

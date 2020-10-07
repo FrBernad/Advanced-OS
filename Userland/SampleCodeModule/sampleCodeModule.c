@@ -1,11 +1,11 @@
 #include <taskManager.h>
 #include <systemCalls.h>
+#include <stringLib.h>
 #include <shell.h>
 
 
 int main() {
       char* args[] = {"Shell"};
-      syscall(LOAD_APP, (uint64_t)&runShell, 1, (uint64_t)args, 0, 0, 0);
-
+      sys_loadApp(&runShell, 1, args);
       return 0;
 }

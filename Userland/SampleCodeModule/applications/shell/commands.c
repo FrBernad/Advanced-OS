@@ -5,6 +5,7 @@
 #include <stringLib.h>
 #include <systemCalls.h>
 #include <utils.h>
+#include <tests.h>
 
 static void memToString(char* buffer, uint8_t* mem, int bytes);
 static void invalidOpcodeTrigger();
@@ -19,9 +20,9 @@ void time(int argc, char** args, t_shellData* shellData) {
             return;
       }
 
-      uint8_t hours = syscall(RTC_TIME, HOURS, 0, 0, 0, 0, 0);
-      uint8_t mins = syscall(RTC_TIME, MINUTES, 0, 0, 0, 0, 0);
-      uint8_t secs = syscall(RTC_TIME, SECONDS, 0, 0, 0, 0, 0);
+      uint8_t hours = sys_RTCTime(HOURS);
+      uint8_t mins = sys_RTCTime(MINUTES);
+      uint8_t secs = sys_RTCTime(SECONDS);
       printfBR(" >Current time: %d:%d:%d\n\n",hours,mins,secs);
 }
 
@@ -36,7 +37,7 @@ void cpuInfo(int argc, char** args, t_shellData* shellData) {
       t_cpuInfo cpuInfo = {vendor, 0};
       cpuVendor(cpuInfo.cpuVendor);
       cpuInfo.model = cpuModel();
-      printfBR(" > CPU Vendor: %s", cpuInfo.cpuVendor);
+      printfBR(" > CPU Vendor: %s\n", cpuInfo.cpuVendor);
       printfBR(" > CPU model: %s\n\n", cpuInfo.model);
 }
 
@@ -59,7 +60,7 @@ void printmem(int argc, char** args, t_shellData* shellData) {
       int bytes = 32;
 
       uint8_t memData[bytes];
-      syscall(GET_MEM, memDir, (uint64_t)memData, 0, 0, 0, 0);
+      sys_getMem(memDir, memData);
 
       char byteStr[bytes * 2];
       memToString(byteStr, memData, bytes);
@@ -94,7 +95,7 @@ void cpuTemp(int argc, char** args, t_shellData* shellData) {
             putchar('\n');
             return;
       }
-      printfBR("CPU temp: %d C\n", syscall(TEMP, 0, 0, 0, 0, 0, 0));
+      printfBR("CPU temp: %d C\n", sys_temp());
 }
 
 //causa una excepcion de dividir por cero
@@ -105,7 +106,7 @@ void checkZeroException(int argc, char** args, t_shellData* shellData) {
             return;
       }
       char* args2[] = {"Zero Division Trigger"};
-      syscall(LOAD_APP, (uint64_t)&zeroDivisionTrigger, 1, (uint64_t)args2, 0, 0, 0);
+      sys_loadApp(&zeroDivisionTrigger, 1, args2);
 }
 
 static void zeroDivisionTrigger(){
@@ -122,7 +123,7 @@ void checkInvalidOpcodeException(int argc, char** args, t_shellData* shellData) 
             return;
       }
       char* args2[] = {"Invalid Opcode Trigger"};
-      syscall(LOAD_APP, (uint64_t)&invalidOpcodeTrigger, 1, (uint64_t)args2, 0, 0, 0);
+     sys_loadApp(&invalidOpcodeTrigger, 1, args2);
 }
 
 static void invalidOpcodeTrigger(){
@@ -142,7 +143,7 @@ void ps(int argc, char** args, t_shellData* shellData) {
       if(argc!=0){
             printfBR("Invalid ammount of arguments.\n");
       }
-      syscall(PS, 0, 0, 0, 0, 0, 0);
+      sys_ps();
 }
 
 // Imprime su ID con un saludo cada una determinada cantidad de segundos.
@@ -151,11 +152,11 @@ void loop(int argc, char** args, t_shellData* shellData){
             printfBR("Invalid ammount of arguments.\n");
       }
       char* args2[] = {"Loop!!!"};
-      syscall(LOAD_APP, (uint64_t)loopFunction, 1, (uint64_t)args2, 0, 0, 0);
+     sys_loadApp(loopFunction, 1, args2);
 }
 
 static void loopFunction(int argc, char** argv) {
-      uint64_t pid = syscall(GETPID, 0, 0, 0, 0, 0, 0);
+      uint64_t pid = sys_getPID();
       while (1) {
             sleep(3);
             printfBR("\n\nID: %d\n", pid);
@@ -173,7 +174,7 @@ void kill(int argc, char** args, t_shellData* shellData){
             printStringLn("Invalid pid");
             return;
       }
-      syscall(KILL,pid,0,0,0,0,0);
+      sys_kill(pid);
 }
 
 // Cambia la prioridad de un proceso dado su ID y la nueva prioridad.
@@ -192,7 +193,7 @@ void nice(int argc, char** args, t_shellData* shellData){
             printStringLn("Invalid pid");
             return;
       }
-      syscall(NICE, pid, priority, 0, 0, 0, 0);
+      sys_nice(pid, priority);
 }
 
 // Cambia el estado de un proceso entre bloqueado y listo dado su ID.
@@ -206,7 +207,7 @@ void block(int argc, char** args, t_shellData* shellData){
             printStringLn("Invalid pid");
             return;
       }
-      syscall(BLOCK, pid, 0, 0, 0, 0, 0);
+      sys_block(pid);
 }
 
 static void memToString(char* buffer, uint8_t* mem, int bytes) {
@@ -218,4 +219,28 @@ static void memToString(char* buffer, uint8_t* mem, int bytes) {
                   uintToBase(mem[i], buffer + i, 16);
             }
       }
+}
+
+void testMM(int argc, char** args, t_shellData* shellData) {
+      if (argc != 0) {
+            printfBR("Invalid ammount of arguments.\n");
+      }
+      char* args2[] = {"testMM"};
+     sys_loadApp(test_mm, 1, args2);
+}
+
+void testProcesses(int argc, char** args, t_shellData* shellData) {
+      if (argc != 0) {
+            printfBR("Invalid ammount of arguments.\n");
+      }
+      char* args2[] = {"testProcesses"};
+     sys_loadApp(test_processes, 1, args2);
+}
+
+void testPriority(int argc, char** args, t_shellData* shellData){
+      if (argc != 0) {
+            printfBR("Invalid ammount of arguments.\n");
+      }
+      char* args2[] = {"testProcesses"};
+      sys_loadApp(test_priority, 1, args2);
 }

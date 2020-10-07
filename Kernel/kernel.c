@@ -23,7 +23,7 @@ static void* const sampleCodeModuleAddress = (void*)0x400000;
 static void* const sampleDataModuleAddress = (void*)0x500000;
 static void* const sampleCodeModuleHeapAddress = (void*)0x600000;
 
-#define HEAP_MEMORY_SIZE (64 * 1024 * 1024)  //64 MB
+#define HEAP_MEMORY_SIZE (128 * 1024 * 1024)  //128 MB
 
 typedef int (*EntryPoint)();
 
@@ -50,17 +50,13 @@ int main() {
       load_idt();
 
       initVideoDriver(BLACK, WHITE);
-      // printStringLn("Init video driver");
 
       initMemoryManager(sampleCodeModuleHeapAddress,HEAP_MEMORY_SIZE);
-      // printStringLn("Init memory manager");
  
       initScheduler();
-      // printStringLn("Init scheduler");
 
       char* argv[] = {"SampleCodeModule"};
       addProcess(sampleCodeModuleAddress, 1, argv);
-      // printStringLn("Halting");
       _hlt();
 
       printStringLn("Si llegue aca se rompio!");

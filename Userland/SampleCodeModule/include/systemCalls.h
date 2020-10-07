@@ -7,24 +7,24 @@
 #include <colours.h>
 #include <cpuInfo.h>
 #include <stdint.h>
+#include <RTCTime.h>
 
-typedef enum {
-      GET_MEM = 0,
-      RTC_TIME = 1,
-      TEMP = 2,
-      WRITE = 3,
-      GETCHAR = 4,
-      CLEAR = 5,
-      LOAD_APP = 6,
-      INFOREG = 7,
-      PS = 8,
-      SECS_ELAPSED = 9,
-      KILL = 10,
-      NICE = 11,
-      BLOCK = 12,
-      GETPID = 13
-} syscallID;
-
-uint64_t syscall(uint64_t rax, uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, uint64_t r8, uint64_t r9);
+void sys_getMem(uint64_t memDir, uint8_t* memData);
+uint8_t sys_RTCTime(t_timeInfo info);
+int sys_temp();
+void sys_write(char* string, uint8_t lenght, t_colour bgColour, t_colour fontColour);
+char sys_getchar();
+void sys_clear();
+uint64_t sys_loadApp(void (*entryPoint)(int, char**), int argc, char** argv);
+uint64_t * sys_inforeg();
+void sys_ps();
+int sys_secsElapsed();
+uint64_t sys_kill(uint64_t pid);
+uint64_t sys_nice(uint64_t pid, uint64_t priority);
+uint64_t sys_block(uint64_t pid);
+uint64_t sys_getPID();
+void *sys_malloc(uint32_t nbytes);
+void sys_free(void* ptr);
+void sys_yield();
 
 #endif

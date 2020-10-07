@@ -3,6 +3,7 @@
 
 #include <memoryManager.h>
 #include <stddef.h>
+#include <stringLib.h>
 
 #define BLOCK_SIZE sizeof(node)
 
@@ -31,8 +32,10 @@ void initMemoryManager(void *memBase, uint64_t memSize){
 }
 
 void *mallocBR(uint32_t nbytes) {
-      if (nbytes == 0)
+      if (nbytes == 0){
+            printfBR("Invalid amount of memory\n");
             return NULL;
+      }
 
       node *current, *prev = first;
 
@@ -53,6 +56,7 @@ void *mallocBR(uint32_t nbytes) {
                   return (void *)(current + 1);
             }
       }
+      printfBR("NO MEMORY!\n");
       return NULL;
 }
 

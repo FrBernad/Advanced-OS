@@ -6,6 +6,7 @@
 #include <sysCallDispatcher.h>
 #include <taskManager.h>
 #include <videoDriver.h>
+#include <memoryManager.h>
 
 #define SYS_GETMEM_ID 0
 #define SYS_RTC_TIME_ID 1
@@ -21,8 +22,11 @@
 #define SYS_NICE_ID 11
 #define SYS_BLOCK_ID 12
 #define SYS_GETPID_ID 13
+#define SYS_MALLOC_ID 14
+#define SYS_FREE_ID 15
+#define SYS_YIELD_ID 16
 
-#define SYSCALLS 14
+#define SYSCALLS 17
 
 uint64_t sysCallDispatcher(t_registers *r) {
       if (r->rax >= 0 && r->rax < SYSCALLS){
@@ -68,7 +72,7 @@ uint64_t sysCallDispatcher(t_registers *r) {
                         break;
 
                   case SYS_KILL_ID:
-                        killProcess((uint64_t)r->rdi);
+                        return killProcess((uint64_t)r->rdi);
                         break;
 
                   case SYS_NICE_ID:
@@ -76,11 +80,23 @@ uint64_t sysCallDispatcher(t_registers *r) {
                         break;
 
                   case SYS_BLOCK_ID:
-                        blockProcess((uint64_t)r->rdi);
+                        return blockProcess((uint64_t)r->rdi);
                         break;
 
                   case SYS_GETPID_ID:
                         return currentProcessPid();
+                        break;
+
+                  case SYS_MALLOC_ID:
+                        return (uint64_t)mallocBR((uint32_t)r->rdi);
+                        break;
+
+                  case SYS_FREE_ID:
+                        freeBR((void*)r->rdi);
+                        break;
+
+                  case SYS_YIELD_ID:
+                        yield();
                         break;
             }
       }

@@ -29,5 +29,6 @@ void reverse2(char *str, int len);
 int intToStr(int x, char str[], int d);
 char *itoa(int value, char *buffer, int base);
 void sleep(int segs);
+void *memset(void *destination, int32_t c, uint64_t length);
 
 #endif
