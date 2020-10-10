@@ -17,13 +17,14 @@ static char* regNames[] = {"R15: ", "R14: ", "R13: ", "R12: ", "R11: ", "R10: ",
                            "R8: ", "RSI: ", "RDI: ", "RBP: ", "RDX: ", "RCX: ", "RBX: ",
                            "RAX: ", "RIP: ", "RSP: "};
 
+static t_shellData shell;
+
 void runShell(int argc, char * argv[]) {
-      t_shellData shellData;
-      initShell(&shellData);
+      initShell(&shell);
       char c;
       while (1) {
             c = getchar();
-            processChar(c,&shellData);
+            processChar(c,&shell);
       }
 }
 
@@ -45,8 +46,10 @@ static void initShell(t_shellData* shellData) {
           {&kill, "kill", "kills process with the given pid"},
           {&nice, "nice", "changes the priority of process with given pid"},
           {&block, "block", "blocks or unblocks process with given pid"},
-          {&testProcesses, "testProcesses", "test scheduler"},
-          {&testPriority, "testPriority", "test scheduler"},
+          {&testProcesses, "testProcesses", "test scheduler process creation"},
+          {&testPriority, "testPriority", "test scheduler priority"},
+          {&testSync, "testSync", "test sem sync"},
+          {&testNoSync, "testNoSync", "test sem sync, should fail"},
           {&testMM, "testMM", "tests memory manager"}};
 
       for (int i = 0; i < COMMANDS; i++) {
@@ -97,6 +100,7 @@ static void processCommand(t_shellData * shellData) {
       char arg1[BUFFER_SIZE] = {0}, arg2[BUFFER_SIZE] = {0}, arg3[BUFFER_SIZE] = {0}, arg4[BUFFER_SIZE] = {0};
       char* argv[MAX_ARGS] = {arg1, arg2, arg3, arg4};
       char command[BUFFER_SIZE] = {0};
+      uint8_t fg=1;
 
       strtok(0, 0, ' ');
       strtok(shellData->buffer.buffer, command, ' ');    //parse buffer
@@ -105,17 +109,21 @@ static void processCommand(t_shellData * shellData) {
       while (argc < MAX_ARGS && strtok(0, argv[argc], ' ')) {
             argc++;
       };
-
       strtok(0, 0, ' ');
+
+      if(argv[argc-1][0]=='&'){
+            fg=0;
+            argc--;
+      }
+
       for (int i = 0; i < COMMANDS; i++) {
             if (stringcmp(shellData->commands[i].name, command) == 0) {
-                  shellData->commands[i].command(argc, argv, shellData);
+                  shellData->commands[i].command(argc, argv, fg);
                   return;
             }
       }
       printStringLn("Invalid command");
 }
-
 
 //muestra en pantalla el texto de la shell
 static void shellText(t_shellData * shellData) {
@@ -124,7 +132,7 @@ static void shellText(t_shellData * shellData) {
 }
 
 //muestra la informacion recoletada sobre los registros obtenidos al haber presionado ctrl + s
-void inforeg(int argc, char** args, t_shellData* shellData) {
+void inforeg(int argc, char** args, uint8_t fg) {
       if (argc != 0) {
             printStringLn("Invalid ammount of arguments.");
             putchar('\n');
@@ -141,18 +149,18 @@ void inforeg(int argc, char** args, t_shellData* shellData) {
 }
 
 //cambia el nombre del usuario mostrado en la shell
-void changeUsername(int argc, char** argv, t_shellData * shellData) {
+void changeUsername(int argc, char** argv, uint8_t fg) {
       if (argc != 1) {
             printStringLn("Invalid ammount of arguments.");
             putchar('\n');
             return;
       }
-      cleanString(shellData->username);
-      strcpy(argv[0],shellData->username);
+      cleanString(shell.username);
+      strcpy(argv[0],shell.username);
 }
 
 //muestra la lista de comandos con sus descripciones
-void help(int argc, char** args, t_shellData * shellData) {
+void help(int argc, char** args, uint8_t fg) {
       if (argc != 0) {
             printStringLn("Invalid ammount of arguments.");
             putchar('\n');
@@ -162,9 +170,9 @@ void help(int argc, char** args, t_shellData * shellData) {
       printStringLn("These shell commands are defined internally.  Type 'help' to see this list.");
       for (int i = 0; i < COMMANDS; i++) {
             printString(" >");
-            printString(shellData->commands[i].name);
+            printString(shell.commands[i].name);
             printString(": ");
-            printStringLn(shellData->commands[i].description);
+            printStringLn(shell.commands[i].description);
       }
       putchar('\n');
 }

@@ -8,7 +8,7 @@
 
 void initScheduler();
 void* scheduler(void* oldRSP);
-uint64_t addProcess(void (*entryPoint)(int, char**), int argc, char** argv);
+uint64_t addProcess(void (*entryPoint)(int, char**), int argc, char** argv, uint8_t fg);
 void listProcesses();
 uint64_t killProcess(uint64_t pid);
 uint64_t changePriority(uint64_t pid, uint64_t priority);
@@ -16,5 +16,6 @@ uint64_t blockProcess(uint64_t pid);
 void resignCPU();
 void yield();
 uint64_t currentProcessPid();
+void killForeground();
 
 #endif

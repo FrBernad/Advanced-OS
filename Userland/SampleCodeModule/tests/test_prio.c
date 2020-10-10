@@ -41,6 +41,7 @@ void test_priority() {
       }
 
       sleep(1);
+      
       printfBR("\nBLOCKING...\n");
 
       for (i = 0; i < TOTAL_PROCESSES; i++)
@@ -79,7 +80,7 @@ static uint64_t my_getpid() {
 
 static uint32_t my_create_process(char* name) {
       char* args[] = {name};
-      return sys_loadApp(&endless_loop, 1, args);
+      return sys_loadApp(&endless_loop, 1, args,0);
 }
 
 static uint64_t my_nice(uint64_t pid, uint64_t newPrio) {

@@ -1,6 +1,4 @@
 #ifndef BUDDY_MM
-#define FREE_LIST_MM
-
 #include <memoryManager.h>
 #include <stddef.h>
 #include <stringLib.h>
@@ -101,5 +99,4 @@ static void joinBlocks(node *left, node *right) {
       } else
             left->s.next = right;
 }
-
 #endif

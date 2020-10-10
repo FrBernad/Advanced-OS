@@ -15,6 +15,10 @@ GLOBAL sys_getPID
 GLOBAL sys_malloc
 GLOBAL sys_free
 GLOBAL sys_yield
+GLOBAL sys_sem_open
+GLOBAL sys_sem_close
+GLOBAL sys_sem_post
+GLOBAL sys_sem_wait
 
 GLOBAL cpuVendor
 GLOBAL cpuModel
@@ -121,6 +125,19 @@ sys_free:
 
 sys_yield:
 	syscall 16
+	
+sys_sem_open:
+	syscall 17
+
+sys_sem_close:
+	syscall 18
+
+sys_sem_post:
+	syscall 19
+
+sys_sem_wait:
+	syscall 20
+
 
 cpuVendor:
 	push rbp

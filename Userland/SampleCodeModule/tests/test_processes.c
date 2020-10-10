@@ -89,7 +89,7 @@ void test_processes() {
 
 static uint32_t my_create_process(char* name) {
       char* args[] = {name};
-      return sys_loadApp(&endless_loop, 1,args);
+      return sys_loadApp(&endless_loop, 1,args,0);
 }
 
 static uint32_t my_kill(uint32_t pid) {

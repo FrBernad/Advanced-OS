@@ -1,12 +1,13 @@
 #include <RTCTime.h>
 #include <keyboardDriver.h>
 #include <lib.h>
-#include <timerTick.h>
+#include <memoryManager.h>
+#include <semaphores.h>
 #include <stringLib.h>
 #include <sysCallDispatcher.h>
 #include <taskManager.h>
+#include <timerTick.h>
 #include <videoDriver.h>
-#include <memoryManager.h>
 
 #define SYS_GETMEM_ID 0
 #define SYS_RTC_TIME_ID 1
@@ -25,14 +26,18 @@
 #define SYS_MALLOC_ID 14
 #define SYS_FREE_ID 15
 #define SYS_YIELD_ID 16
+#define SYS_SEM_OPEN_ID 17
+#define SYS_SEM_CLOSE_ID 18
+#define SYS_SEM_POST_ID 19
+#define SYS_SEM_WAIT_ID 20
 
-#define SYSCALLS 17
+#define SYSCALLS 21
 
 uint64_t sysCallDispatcher(t_registers *r) {
-      if (r->rax >= 0 && r->rax < SYSCALLS){
+      if (r->rax >= 0 && r->rax < SYSCALLS) {
             switch (r->rax) {
                   case SYS_GETMEM_ID:
-                        sys_getMem(r->rdi,(uint8_t*)r->rsi);
+                        sys_getMem(r->rdi, (uint8_t *)r->rsi);
                         break;
 
                   case SYS_RTC_TIME_ID:
@@ -56,7 +61,7 @@ uint64_t sysCallDispatcher(t_registers *r) {
                         break;
 
                   case SYS_LOAD_APP_ID:
-                        return addProcess((void (*)(int, char **))r->rdi, (int)r->rsi,(char**)r->rdx);
+                        return addProcess((void (*)(int, char **))r->rdi, (int)r->rsi, (char **)r->rdx, (uint8_t)r->r10);
                         break;
 
                   case SYS_INFOREG_ID:
@@ -92,11 +97,27 @@ uint64_t sysCallDispatcher(t_registers *r) {
                         break;
 
                   case SYS_FREE_ID:
-                        freeBR((void*)r->rdi);
+                        freeBR((void *)r->rdi);
                         break;
 
                   case SYS_YIELD_ID:
                         yield();
+                        break;
+
+                  case SYS_SEM_OPEN_ID:
+                        return sem_open((char *)r->rdi,r->rsi);
+                        break;
+
+                  case SYS_SEM_CLOSE_ID:
+                        return sem_close((int)r->rdi);
+                        break;
+
+                  case SYS_SEM_POST_ID:
+                        return sem_post((int)r->rdi);
+                        break;
+
+                  case SYS_SEM_WAIT_ID:
+                        return sem_wait((int)r->rdi);
                         break;
             }
       }

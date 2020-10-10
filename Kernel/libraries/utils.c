@@ -1,5 +1,7 @@
 #include <utils.h>
 #include <buffer.h>
+#include <stddef.h>
+
 
 //sacada de nvconsole
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base) {
@@ -160,6 +162,9 @@ uint64_t strToInt(char *str, int *error) {
 }
 
 uint8_t stringcmp(char *str1, char *str2) {
+      if(str1==NULL || str2==NULL)
+            return 1;
+
       int i = 0;
       while (str1[i] != 0 && str2[i] != 0 && str1[i] == str2[i]) {
             i++;

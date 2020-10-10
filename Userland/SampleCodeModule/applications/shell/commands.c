@@ -4,16 +4,16 @@
 #include <lib.h>
 #include <stringLib.h>
 #include <systemCalls.h>
-#include <utils.h>
 #include <tests.h>
+#include <utils.h>
 
 static void memToString(char* buffer, uint8_t* mem, int bytes);
 static void invalidOpcodeTrigger();
-static void zeroDivisionTrigger();\
+static void zeroDivisionTrigger();
 static void loopFunction(int argc, char** argv);
 
 //devuelve el tiempo acutal del sistema
-void time(int argc, char** args, t_shellData* shellData) {
+void time(int argc, char** args, uint8_t fg) {
       if (argc != 0) {
             printStringLn("Invalid ammount of arguments.");
             putchar('\n');
@@ -23,11 +23,11 @@ void time(int argc, char** args, t_shellData* shellData) {
       uint8_t hours = sys_RTCTime(HOURS);
       uint8_t mins = sys_RTCTime(MINUTES);
       uint8_t secs = sys_RTCTime(SECONDS);
-      printfBR(" >Current time: %d:%d:%d\n\n",hours,mins,secs);
+      printfBR(" >Current time: %d:%d:%d\n\n", hours, mins, secs);
 }
 
 //devuelve el modelo y vendedor del cpu
-void cpuInfo(int argc, char** args, t_shellData* shellData) {
+void cpuInfo(int argc, char** args, uint8_t fg) {
       if (argc != 0) {
             printStringLn("Invalid ammount of arguments.");
             putchar('\n');
@@ -42,7 +42,7 @@ void cpuInfo(int argc, char** args, t_shellData* shellData) {
 }
 
 //Hace un dump de 32 bytes de memria a partir de la direccion pedida
-void printmem(int argc, char** args, t_shellData* shellData) {
+void printmem(int argc, char** args, uint8_t fg) {
       if (argc != 1) {
             printStringLn("Invalid ammount of arguments.");
             putchar('\n');
@@ -89,7 +89,7 @@ void printmem(int argc, char** args, t_shellData* shellData) {
 }
 
 //Imprime la temperatura actual del cpu
-void cpuTemp(int argc, char** args, t_shellData* shellData) {
+void cpuTemp(int argc, char** args, uint8_t fg) {
       if (argc != 0) {
             printStringLn("Invalid ammount of arguments.");
             putchar('\n');
@@ -99,17 +99,17 @@ void cpuTemp(int argc, char** args, t_shellData* shellData) {
 }
 
 //causa una excepcion de dividir por cero
-void checkZeroException(int argc, char** args, t_shellData* shellData) {
+void checkZeroException(int argc, char** args, uint8_t fg) {
       if (argc != 0) {
             printStringLn("Invalid ammount of arguments.");
             putchar('\n');
             return;
       }
       char* args2[] = {"Zero Division Trigger"};
-      sys_loadApp(&zeroDivisionTrigger, 1, args2);
+      sys_loadApp(&zeroDivisionTrigger, 1, args2, fg);
 }
 
-static void zeroDivisionTrigger(){
+static void zeroDivisionTrigger() {
       int a = 0;
       int b = 20 / a;
       if (b == 0) {
@@ -117,42 +117,42 @@ static void zeroDivisionTrigger(){
 }
 
 //causa una excepcion de tipo invalid opcode
-void checkInvalidOpcodeException(int argc, char** args, t_shellData* shellData) {
+void checkInvalidOpcodeException(int argc, char** args, uint8_t fg) {
       if (argc != 0) {
             printfBR("Invalid ammount of arguments.\n");
             return;
       }
       char* args2[] = {"Invalid Opcode Trigger"};
-     sys_loadApp(&invalidOpcodeTrigger, 1, args2);
+      sys_loadApp(&invalidOpcodeTrigger, 1, args2, fg);
 }
 
-static void invalidOpcodeTrigger(){
+static void invalidOpcodeTrigger() {
       __asm__("ud2");  // https://hjlebbink.github.io/x86doc/html/UD2.html
 }
 
 //Muestra los argumentos pasados al comando
-void showArgs(int argc, char** args, t_shellData* shellData) {
+void showArgs(int argc, char** args, uint8_t fg) {
       for (int i = 0; i < argc && i < MAX_ARGS; i++) {
-            printfBR("arg[%d]=%s\n",i,args[i]);
+            printfBR("arg[%d]=%s\n", i, args[i]);
       }
       putchar('\n');
 }
 
 //Muestra los procesos
-void ps(int argc, char** args, t_shellData* shellData) {
-      if(argc!=0){
+void ps(int argc, char** args, uint8_t fg) {
+      if (argc != 0) {
             printfBR("Invalid ammount of arguments.\n");
       }
       sys_ps();
 }
 
 // Imprime su ID con un saludo cada una determinada cantidad de segundos.
-void loop(int argc, char** args, t_shellData* shellData){
+void loop(int argc, char** args, uint8_t fg) {
       if (argc != 0) {
             printfBR("Invalid ammount of arguments.\n");
       }
       char* args2[] = {"Loop!!!"};
-     sys_loadApp(loopFunction, 1, args2);
+      sys_loadApp(loopFunction, 1, args2, fg);
 }
 
 static void loopFunction(int argc, char** argv) {
@@ -164,13 +164,13 @@ static void loopFunction(int argc, char** argv) {
 }
 
 // Mata un proceso dado su ID.
-void kill(int argc, char** args, t_shellData* shellData){
+void kill(int argc, char** args, uint8_t fg) {
       if (argc != 1) {
             printfBR("Invalid ammount of arguments.\n");
       }
       int error = 0;
-      uint64_t pid = strToInt(args[0],&error);
-      if(error){
+      uint64_t pid = strToInt(args[0], &error);
+      if (error) {
             printStringLn("Invalid pid");
             return;
       }
@@ -178,7 +178,7 @@ void kill(int argc, char** args, t_shellData* shellData){
 }
 
 // Cambia la prioridad de un proceso dado su ID y la nueva prioridad.
-void nice(int argc, char** args, t_shellData* shellData){
+void nice(int argc, char** args, uint8_t fg) {
       if (argc != 2) {
             printfBR("Invalid ammount of arguments.\n");
       }
@@ -197,7 +197,7 @@ void nice(int argc, char** args, t_shellData* shellData){
 }
 
 // Cambia el estado de un proceso entre bloqueado y listo dado su ID.
-void block(int argc, char** args, t_shellData* shellData){
+void block(int argc, char** args, uint8_t fg) {
       if (argc != 1) {
             printfBR("Invalid ammount of arguments.\n");
       }
@@ -221,26 +221,41 @@ static void memToString(char* buffer, uint8_t* mem, int bytes) {
       }
 }
 
-void testMM(int argc, char** args, t_shellData* shellData) {
+void testMM(int argc, char** args, uint8_t fg) {
       if (argc != 0) {
             printfBR("Invalid ammount of arguments.\n");
       }
       char* args2[] = {"testMM"};
-     sys_loadApp(test_mm, 1, args2);
+      sys_loadApp(test_mm, 1, args2, fg);
 }
 
-void testProcesses(int argc, char** args, t_shellData* shellData) {
+void testProcesses(int argc, char** args, uint8_t fg) {
       if (argc != 0) {
             printfBR("Invalid ammount of arguments.\n");
       }
       char* args2[] = {"testProcesses"};
-     sys_loadApp(test_processes, 1, args2);
+      sys_loadApp(test_processes, 1, args2, fg);
 }
 
-void testPriority(int argc, char** args, t_shellData* shellData){
+void testPriority(int argc, char** args, uint8_t fg) {
       if (argc != 0) {
             printfBR("Invalid ammount of arguments.\n");
       }
       char* args2[] = {"testProcesses"};
-      sys_loadApp(test_priority, 1, args2);
+      sys_loadApp(test_priority, 1, args2, fg);
+}
+
+void testSync(int argc, char** args, uint8_t fg) {
+      if (argc != 0) {
+            printfBR("Invalid ammount of arguments.\n");
+      }
+      char* args2[] = {"testSync"};
+      sys_loadApp(test_sync, 1, args2, fg);
+}
+void testNoSync(int argc, char** args, uint8_t fg) {
+      if (argc != 0) {
+            printfBR("Invalid ammount of arguments.\n");
+      }
+      char* args2[] = {"testNoSync"};
+      sys_loadApp(test_no_sync, 1, args2, fg);
 }

@@ -55,10 +55,10 @@ int main() {
  
       initScheduler();
 
-      char* argv[] = {"SampleCodeModule"};
-      addProcess(sampleCodeModuleAddress, 1, argv);
+      char* argv[] = {"SCM"};
+      addProcess(sampleCodeModuleAddress, 1, argv, 1);
       _hlt();
 
-      printStringLn("Si llegue aca se rompio!");
+      printStringLn("Something went wrong!");
       return 0;
 }

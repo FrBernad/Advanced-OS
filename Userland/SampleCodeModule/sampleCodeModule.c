@@ -6,6 +6,6 @@
 
 int main() {
       char* args[] = {"Shell"};
-      sys_loadApp(&runShell, 1, args);
+      sys_loadApp(&runShell, 1, args, 1);
       return 0;
 }

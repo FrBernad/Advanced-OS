@@ -14,4 +14,7 @@ uint8_t getBSDTimeInfo(uint8_t info);
 
 void callTimerTick ();
 
+void lock_region(uint8_t * lock);
+void unlock_region(uint8_t * lock);
+
 #endif

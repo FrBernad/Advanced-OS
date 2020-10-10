@@ -10,7 +10,11 @@ GLOBAL getBSDTimeInfo
 
 GLOBAL callTimerTick
 
+GLOBAL lock_region
+GLOBAL unlock_region
+
 EXTERN scheduler
+
 
 section .text
 
@@ -171,4 +175,21 @@ getBSDTimeInfo:
 
 callTimerTick:
 	int 20h
+	ret
+
+	
+lock_region:
+	push rax
+
+.start_loop:
+	mov al, 1
+	xchg al, [rdi]
+	cmp al, 0
+	jne .start_loop
+
+	pop rax
+	ret
+
+unlock_region:
+	mov byte [rdi], 0
 	ret

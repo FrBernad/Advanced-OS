@@ -8,7 +8,8 @@
 #include <timerTick.h>
 
 #define SIZE_OF_STACK 4 * 1024
-#define DEFAULT_PRIORITY 1
+#define DEFAULT_FG_PRIORITY 2
+#define DEFAULT_BG_PRIORITY 1
 #define MAX_PRIORITY 36
 
 typedef struct {
@@ -44,7 +45,9 @@ typedef enum { READY,
 
 typedef struct {
       uint64_t pid;
+      uint64_t ppid;
       uint64_t priority;
+      uint8_t fg;
       char* name;
       void* rsp;
       void* rbp;
@@ -63,7 +66,7 @@ typedef struct pList {
 } t_pList;
 
 static void initializeStackFrame(void (*entryPoint)(int, char**), int argc, char** argv, void* rbp);
-static int initProcess(t_PCB* process, char* name);
+static int initProcess(t_PCB* process, char* name, uint8_t fg);
 static uint64_t newPid();
 static void idleFunction(int argc, char** argv);
 static void wrapper(void (*entryPoint)(int, char**), int argc, char** argv);
@@ -90,7 +93,7 @@ void initScheduler() {
       processes->size = 0;
 
       char* argv[] = {"System Idle Process"};
-      addProcess(&idleFunction, 1, argv);
+      addProcess(&idleFunction, 1, argv, 1);
       idleProcess = dequeueProcess();
 }
 
@@ -104,6 +107,10 @@ void* scheduler(void* oldRSP) {
             currentProcess->pcb.rsp = oldRSP;
 
             if (currentProcess->pcb.state == KILLED) {
+                  t_pNode* p = getProcessByPID(currentProcess->pcb.ppid);
+                  if (p != NULL && currentProcess->pcb.fg && p->pcb.state == BLOCKED)
+                        blockProcess(currentProcess->pcb.ppid);
+
                   removeProcess(currentProcess);
             } else
                   enqueueProcess(currentProcess);
@@ -127,7 +134,7 @@ void* scheduler(void* oldRSP) {
       return currentProcess->pcb.rsp;
 }
 
-uint64_t addProcess(void (*entryPoint)(int, char**), int argc, char** argv) {
+uint64_t addProcess(void (*entryPoint)(int, char**), int argc, char** argv, uint8_t fg) {
       if (entryPoint == NULL)
             return 0;
 
@@ -136,18 +143,20 @@ uint64_t addProcess(void (*entryPoint)(int, char**), int argc, char** argv) {
       if (newProcess == 0)
             return 0;
 
-      if (initProcess(&newProcess->pcb, argv[0]) == 1)
+      if (initProcess(&newProcess->pcb, argv[0], fg) == 1)
             return 0;
 
-      
       initializeStackFrame(entryPoint, argc, argv, newProcess->pcb.rbp);
       enqueueProcess(newProcess);
+
+      if (newProcess->pcb.fg && newProcess->pcb.ppid)
+            blockProcess(newProcess->pcb.ppid);
 
       return newProcess->pcb.pid;
 }
 
 void listProcesses() {
-      printfBR("PID    CMD    PRIO    STATE    RSP    RBP\n");
+      printfBR("PID    PPID    CMD    FG    PRIO    STATE    RSP    RBP\n");
       if (currentProcess != NULL)
             dumpProcess(currentProcess->pcb);
 
@@ -177,21 +186,36 @@ uint64_t changePriority(uint64_t pid, uint64_t priority) {
             return 0;
 
       t_pNode* p = getProcessByPID(pid);
-      if (p != NULL){
+      if (p != NULL) {
             p->pcb.priority = priority;
             return pid;
       }
       return 0;
 }
 
+void killForeground() {
+      if (currentProcess != NULL && currentProcess->pcb.fg && currentProcess->pcb.state == READY)
+            killProcess(currentProcess->pcb.pid);
+
+      for (t_pNode* p = processes->first; p != NULL; p = p->next) {
+            if (currentProcess->pcb.fg && currentProcess->pcb.state == READY) {
+                  killProcess(currentProcess->pcb.pid);
+                  return;
+            }
+      }
+}
+
 uint64_t blockProcess(uint64_t pid) {
       t_pNode* p = getProcessByPID(pid);
       if (p != NULL) {
-            if (p->pcb.state == READY) {
+            if (p->pcb.state == READY)
                   p->pcb.state = BLOCKED;
-            } else if (p->pcb.state == BLOCKED) {
+            else if (p->pcb.state == BLOCKED)
                   p->pcb.state = READY;
-            }
+
+            if (currentProcess->pcb.pid == pid)
+                  callTimerTick();
+
             return pid;
       }
       return 0;
@@ -201,20 +225,30 @@ uint64_t currentProcessPid() {
       return currentProcess ? currentProcess->pcb.pid : 0;
 }
 
-static int initProcess(t_PCB* process, char* name) {
+static int initProcess(t_PCB* process, char* name, uint8_t fg) {
       process->name = name;
+
       process->pid = newPid();
+      process->ppid = currentProcess == NULL ? 0 : currentProcess->pcb.pid;
+
+      if (fg > 1)
+            return 1;
+      process->fg = currentProcess == NULL ? fg : (currentProcess->pcb.fg ? fg : 0);
+
       process->rbp = mallocBR(SIZE_OF_STACK);
       if (process->rbp == NULL)
             return 1;
+
       process->rbp = (void*)((char*)process->rbp + SIZE_OF_STACK - 1);
       process->rsp = (void*)((t_stackFrame*)process->rbp - 1);
       process->state = READY;
-      process->priority = DEFAULT_PRIORITY;
+      process->priority = process->fg ? DEFAULT_FG_PRIORITY : DEFAULT_BG_PRIORITY;
+
       return 0;
 }
 
 static void wrapper(void (*entryPoint)(int, char**), int argc, char** argv) {
+      //FIXME: hacer la copia de los argumentos
       entryPoint(argc, argv);
       exit();
 }
@@ -279,7 +313,7 @@ static void dumpProcess(t_PCB process) {
                   state = "KILLED";
                   break;
       }
-      printfBR("%d    %s    %d    %s    %x    %x    \n", process.pid, process.name, process.priority, state, (uint64_t)process.rsp, (uint64_t)process.rbp);
+      printfBR("%d      %d      %s    %d    %d    %s    %x    %x    \n", process.pid, process.ppid, process.name, process.fg, process.priority, state, (uint64_t)process.rsp, (uint64_t)process.rbp);
 }
 
 static void dumpProcesses() {

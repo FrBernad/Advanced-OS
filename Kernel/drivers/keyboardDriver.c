@@ -9,6 +9,7 @@
 #include <keyboardInfo.h>
 #include <lib.h>
 #include <staticQueue.h>
+#include <taskManager.h>
 #include <utils.h>
 #include <videoDriver.h>
 
@@ -25,7 +26,7 @@ static char bufferSpace[MAX_SIZE] = {0};
 static t_queue buffer = {bufferSpace, 0, -1, 0, MAX_SIZE, sizeof(char)};
 static t_queue* currentBuffer = &buffer;
 static t_specialKeyCode clearS = CLEAR_SCREEN;
-static uint64_t registers[REGISTERS+1] = {0};
+static uint64_t registers[REGISTERS + 1] = {0};
 
 void keyboardHandler(uint64_t rsp) {
       if (hasKey()) {
@@ -50,17 +51,17 @@ void keyboardHandler(uint64_t rsp) {
                               default:
                                     if (pressCodes[scanCode][0] != 0) {
                                           if (l_ctrl) {
-                                                if (pressCodes[scanCode][0] == 'l') {
+                                                if (pressCodes[scanCode][0] == 'l')
                                                       queueInsert(currentBuffer, &clearS);
-                                                } else if (pressCodes[scanCode][0] == 's') {
+                                                else if (pressCodes[scanCode][0] == 's')
                                                       updateSnapshot((uint64_t*)rsp);
-                                                }
+                                                else if (pressCodes[scanCode][0] == 'c')
+                                                      killForeground();
                                           } else {
-                                                if (!IS_LETTER(pressCodes[scanCode][0])) {
+                                                if (!IS_LETTER(pressCodes[scanCode][0]))
                                                       queueInsert(currentBuffer, &pressCodes[scanCode][specialChars]);
-                                                } else {
+                                                else
                                                       queueInsert(currentBuffer, &pressCodes[scanCode][ABS(capsLock - (specialChars))]);
-                                                }
                                           }
                                     }
                         }
