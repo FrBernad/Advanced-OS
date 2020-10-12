@@ -28,17 +28,19 @@ typedef struct {
       uint8_t lock;
 } t_sem;
 
+//sem functions
 static int createSem(char* name, uint64_t initialCount);
 static int searchSemaphore(char* name);
 static int getAvailableSem();
 
+//list functions
 static int queueIsEmpty(t_pList* blockedList);
 static void enqueueProcess(t_pList* blockedList, t_pNode* newProcess);
 static uint64_t dequeueProcess(t_pList* blockedList);
 static void freeList(t_pList* list);
+static void dumpList(t_pList* list);
 
 static t_sem semaphores[MAX_SEMAPHORES];
-static uint32_t activeSemaphores;
 static uint8_t globalSemLock;
 
 int sem_open(char* name, uint64_t initialCount) {
@@ -49,13 +51,14 @@ int sem_open(char* name, uint64_t initialCount) {
 
       lock_region(&globalSemLock);
 
-      if (activeSemaphores > 0)
-            semIndex = searchSemaphore(name);
+      semIndex = searchSemaphore(name);
 
       if (semIndex == -1) {
             semIndex = createSem(name, initialCount);
-            if (semIndex == -1)
+            if (semIndex == -1) {
+                  unlock_region(&globalSemLock);
                   return -1;
+            }
       }
 
       semaphores[semIndex].attachedProcesses++;
@@ -66,83 +69,111 @@ int sem_open(char* name, uint64_t initialCount) {
 }
 
 int sem_wait(int semIndex) {
-      t_sem sem = semaphores[semIndex];
+      t_sem* sem = &semaphores[semIndex];
 
-      if (!sem.active)
+      if (!sem->active)
             return -1;
 
-      lock_region(&sem.lock);
+      lock_region(&sem->lock);
 
-      if (sem.count > 0) {
-            sem.count--;
-            unlock_region(&sem.lock);
+      if (sem->count > 0) {
+            sem->count--;
+            // printfBR("reduced count %d\n", sem->count);
+            unlock_region(&sem->lock);
             return 1;
       }
 
       uint64_t pid = currentProcessPid();
       t_pNode* p = mallocBR(sizeof(t_pNode));
       if (p == NULL) {
-            unlock_region(&sem.lock);
+            unlock_region(&sem->lock);
             return -1;
       }
       p->processPID = pid;
-      enqueueProcess(sem.blockedProcesses, p);
+      enqueueProcess(sem->blockedProcesses, p);
 
-      unlock_region(&sem.lock);
+      unlock_region(&sem->lock);
+
+      // printfBR("blocking process pid %d\n", pid);
 
       blockProcess(pid);
+
+      // t_pNode* aux = sem->blockedProcesses->first;
+      // while (aux != NULL) {
+      //       printfBR("pid: %d\n", aux->processPID);
+      //       aux = aux->next;
+      // }
 
       return 1;
 }
 
 int sem_post(int semIndex) {
-      t_sem sem = semaphores[semIndex];
+      t_sem* sem = &semaphores[semIndex];
 
-      if (!sem.active)
+      if (!sem->active)
             return -1;
 
-      lock_region(&sem.lock);
+      lock_region(&sem->lock);
 
-      if (sem.count > 0) {
-            sem.count++;
-            unlock_region(&sem.lock);
+      if (sem->count > 0 || queueIsEmpty(sem->blockedProcesses)) {
+            sem->count++;
+            unlock_region(&sem->lock);
             return 1;
       }
-      uint64_t processPID = dequeueProcess(sem.blockedProcesses);
 
-      unlock_region(&sem.lock);
+      uint64_t processPID = dequeueProcess(sem->blockedProcesses);
+      unlock_region(&sem->lock);
 
+      // printfBR("unblocking %d\n", processPID);
       blockProcess(processPID);
 
       return 1;
 }
 
 int sem_close(int semIndex) {
-      t_sem sem = semaphores[semIndex];
-      if (!sem.active)
+      t_sem* sem = &semaphores[semIndex];
+      if (!sem->active)
             return -1;
 
-      lock_region(&sem.lock);
+      lock_region(&sem->lock);
 
-      sem.attachedProcesses--;
+      sem->attachedProcesses--;
 
-      if (sem.attachedProcesses > 0) {
-            unlock_region(&sem.lock);
+      if (sem->attachedProcesses > 0) {
+            unlock_region(&sem->lock);
             return 1;
       }
 
-      if (sem.blockedProcesses->size > 0) {
+      if (sem->blockedProcesses->size > 0) {
             printfBR("Error closing semaphore, processes still blocked\n");
-            unlock_region(&sem.lock);
+            unlock_region(&sem->lock);
             return -1;
       }
 
-      sem.active = 0;
-      freeList(sem.blockedProcesses);
+      sem->active = 0;
+      freeList(sem->blockedProcesses);
 
-      unlock_region(&sem.lock);
+      unlock_region(&sem->lock);
 
       return 1;
+}
+
+void dumpSemaphores() {
+      for (int i = 0; i < MAX_SEMAPHORES; i++) {
+            if (semaphores[i].active) {
+                  printfBR("Sem index: %d\n", i);
+                  dumpSemaphore(i);
+            }
+      }
+}
+
+void dumpSemaphore(int semIndex) {
+      t_sem* sem = &semaphores[semIndex];
+
+      printfBR("Name: %s\n", sem->name);
+      printfBR("atatchedProcesses: %s\n", sem->attachedProcesses);
+      printfBR("Blocked processes:\n");
+      dumpList(sem->blockedProcesses);
 }
 
 static int createSem(char* name, uint64_t initialCount) {
@@ -150,16 +181,18 @@ static int createSem(char* name, uint64_t initialCount) {
       if (semIndex == -1) {
             return -1;
       }
-      t_sem sem = semaphores[semIndex];
-      sem.name = name;
-      sem.active = 1;
-      sem.count = initialCount;
-      sem.blockedProcesses = mallocBR(sizeof(t_pList));
-      if (sem.blockedProcesses == NULL)
+      t_sem* sem = &semaphores[semIndex];
+      sem->name = name;
+      sem->active = 1;
+      sem->lock = 0;
+      sem->count = initialCount;
+      sem->attachedProcesses = 0;
+      sem->blockedProcesses = mallocBR(sizeof(t_pList));
+      if (sem->blockedProcesses == NULL)
             return -1;
-      sem.blockedProcesses->first = NULL;
-      sem.blockedProcesses->last = sem.blockedProcesses->first;
-      sem.blockedProcesses->size = 0;
+      sem->blockedProcesses->first = NULL;
+      sem->blockedProcesses->last = sem->blockedProcesses->first;
+      sem->blockedProcesses->size = 0;
       return semIndex;
 }
 
@@ -175,8 +208,9 @@ static int getAvailableSem() {
 static int searchSemaphore(char* name) {
       for (int i = 0; i < MAX_SEMAPHORES; i++) {
             if (semaphores[i].active) {
-                  if (stringcmp(name, semaphores[i].name) == 0)
+                  if (stringcmp(name, semaphores[i].name) == 0) {
                         return i;
+                  }
             }
       }
       return -1;
@@ -199,13 +233,14 @@ static void enqueueProcess(t_pList* blockedList, t_pNode* newProcess) {
 }
 
 static uint64_t dequeueProcess(t_pList* blockedList) {
-      if (queueIsEmpty(blockedList))
+      if (queueIsEmpty(blockedList)) {
             return 0;
+      }
 
       t_pNode* p = blockedList->first;
       blockedList->first = blockedList->first->next;
       blockedList->size--;
-      uint64_t processPID=p->processPID;
+      uint64_t processPID = p->processPID;
       freeBR(p);
       return processPID;
 }
@@ -219,4 +254,12 @@ static void freeList(t_pList* list) {
             freeBR(aux);
       }
       freeBR(list);
+}
+
+static void dumpList(t_pList* list){
+      t_pNode *p = list->first;
+
+      while(p!=NULL){
+            printfBR("PID: %d\n",p->processPID);
+      }
 }

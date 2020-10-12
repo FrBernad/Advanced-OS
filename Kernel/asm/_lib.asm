@@ -180,7 +180,6 @@ callTimerTick:
 	
 lock_region:
 	push rax
-
 .start_loop:
 	mov al, 1
 	xchg al, [rdi]

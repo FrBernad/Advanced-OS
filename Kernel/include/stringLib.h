@@ -18,5 +18,7 @@ void putcharWC(char c, t_colour bgColour, t_colour fontColour);
 void staticputchar(char c);
 int strlen(char* str);
 int printfBR(char const* fmt, ...);
+char * strcat(char * destination,char * source);
+char * strcpy(char * destination, char * source);
 
 #endif

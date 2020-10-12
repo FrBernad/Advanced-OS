@@ -16,7 +16,7 @@ static void my_process_inc_no_sem();
 static void my_process_dec_no_sem();
 static void slowInc(int64_t *p, int64_t inc);
 
-#define N 100000
+#define N 20
 #define SEM_ID "sem"
 #define TOTAL_PAIR_PROCESSES 2
 
@@ -34,7 +34,7 @@ void test_sync() {
             my_create_process_sync("my_process_dec", (void (*)(int, char **))my_process_dec);
       }
 
-      // The last one should printfBR 0
+      // The last one should print final value: 0
 }
 
 static void my_process_inc() {
@@ -46,7 +46,7 @@ static void my_process_inc() {
             return;
       }
 
-      for (i = 0; i < 500; i++) {
+      for (i = 0; i < N; i++) {
             my_sem_wait_sync(semid);
             slowInc(&global, 1);
             my_sem_post_sync(semid);
@@ -66,7 +66,7 @@ static void my_process_dec() {
             return;
       }
 
-      for (i = 0; i < 500; i++) {
+      for (i = 0; i < N; i++) {
             my_sem_wait_sync(semid);
             slowInc(&global, -1);
             my_sem_post_sync(semid);
@@ -88,12 +88,9 @@ void test_no_sync() {
             my_create_process_sync("my_process_inc_no_sem", (void (*)(int, char **))my_process_inc_no_sem);
             my_create_process_sync("my_process_dec_no_sem", (void (*)(int, char **))my_process_dec_no_sem);
       }
-
-      // The last one should not print 0
 }
 
 static void my_process_inc_no_sem() {
-      printfBR("starting");
       uint64_t i;
       for (i = 0; i < N; i++) {
             slowInc(&global, 1);
@@ -113,18 +110,10 @@ static void my_process_dec_no_sem() {
 
 static void slowInc(int64_t *p, int64_t inc) {
       int64_t aux = *p;
-
-      // Simula mala suerte
-      if (GetUniform(100) % 31 == 1)
-            sys_yield();
-
       aux += inc;
+      sys_yield();
       *p = aux;
 }
-
-
-
-
 
 
 static uint64_t my_create_process_sync(char *name, void (*function)(int, char **)) {

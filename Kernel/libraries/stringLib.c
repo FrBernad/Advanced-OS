@@ -1,7 +1,8 @@
-#include <stringLib.h>
-#include <videoDriver.h>
 #include <stdarg.h>
+#include <stddef.h>
+#include <stringLib.h>
 #include <utils.h>
+#include <videoDriver.h>
 
 static int processString(char const *fmt, va_list arg);
 
@@ -88,6 +89,44 @@ int printfBR(char const *fmt, ...) {
       length = processString(fmt, arg);
       va_end(arg);
       return length;
+}
+
+char* strcat(char* destination, char* source) {
+      // make ptr point to the end of destination string
+      char* ptr = destination + strlen(destination);
+
+      // Appends characters of source to the destination string
+      while (*source != '\0')
+            *ptr++ = *source++;
+
+      // null terminate destination string
+      *ptr = '\0';
+
+      // destination is returned by standard strcat()
+      return destination;
+}
+
+char* strcpy(char* destination, char* source) {
+      // return if no memory is allocated to the destination
+      if (destination == NULL)
+            return NULL;
+
+      // take a pointer pointing to the beginning of destination string
+      char* ptr = destination;
+
+      // copy the C-string pointed by source into the array
+      // pointed by destination
+      while (*source != '\0') {
+            *destination = *source;
+            destination++;
+            source++;
+      }
+
+      // include the terminating null character
+      *destination = '\0';
+
+      // destination is returned by standard strcpy()
+      return ptr;
 }
 
 static int processString(char const *fmt, va_list arg) {
