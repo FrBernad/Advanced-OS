@@ -30,6 +30,11 @@
 #define SYS_SEM_CLOSE_ID 18
 #define SYS_SEM_POST_ID 19
 #define SYS_SEM_WAIT_ID 20
+#define SYS_SEM_DUMP_ID 21
+#define SYS_PIPE_ID 22
+#define SYS_PIPE_WRITE_ID 23
+#define SYS_PIPE_CLOSE_ID 24
+#define SYS_PIPE_DUMP_ID 25
 
 #define SYSCALLS 21
 
