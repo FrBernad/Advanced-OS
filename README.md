@@ -55,6 +55,11 @@ Los comandos son los siguientes:
 - ***ctr + c:*** mata al proceso que se encuentre corriendo en foreground.
 - ***ctr + d:*** manda la señal de EOF.
 
+### Comportamientos especiales
+Para correr un programa en **background** ejecute `commandName &`.
+
+Para **pipear** la salida de un comando a la entrada de otro ejecute `commandName1 | commandName2`.
+
 ## Syscalls
 
 ***int 80h***
