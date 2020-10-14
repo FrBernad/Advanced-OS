@@ -31,23 +31,23 @@ Los comandos son los siguientes:
 - ***checkInvalidOpCodeException:*** causa una excepción de código de operación inválido.
 - ***changeUsername:*** cambia el nombre del usuario de la shell al pasado como parámetro.
 - ***showArgs:*** imprime en pantalla los argumentos del comando.
--***ps*** report the status of the current processes.
--***loop*** loops process.
--***kill*** kills process with the given pid.
--***nice*** changes the priority of process with given pid.
--***block*** blocks process with given pid.
--***unblock*** unblocks process with given pid.
--***testProcesses*** tests scheduler process creation.
--***testPriority***  tests scheduler priority.
--***testSync*** tests sem sync.
--***testNoSync*** tests sem sync should fail.
--***testMM*** tests memory manager.
--***pipe*** dump active pipes.
--***sem*** dump active semaphores.
--***wc*** counts the lines recieved from input.
--***filter*** filters the vocals recieved from input.
--***cat*** prints characters from input.
--***phylo*** phylosphers dining problem recieves number of initial phylosophers (max 6, min 2).
+- ***ps*** report the status of the current processes.
+- ***loop*** loops process.
+- ***kill*** kills process with the given pid.
+- ***nice*** changes the priority of process with given pid.
+- ***block*** blocks process with given pid.
+- ***unblock*** unblocks process with given pid.
+- ***testProcesses*** tests scheduler process creation.
+- ***testPriority***  tests scheduler priority.
+- ***testSync*** tests sem sync.
+- ***testNoSync*** tests sem sync should fail.
+- ***testMM*** tests memory manager.
+- ***pipe*** dump active pipes.
+- ***sem*** dump active semaphores.
+- ***wc*** counts the lines recieved from input.
+- ***filter*** filters the vocals recieved from input.
+- ***cat*** prints characters from input.
+- ***phylo*** phylosphers dining problem recieves number of initial phylosophers (max 6, min 2).
 
 ### Teclas especiales
 
