@@ -31,23 +31,23 @@ Los comandos son los siguientes:
 - ***checkInvalidOpCodeException:*** causa una excepción de código de operación inválido.
 - ***changeUsername:*** cambia el nombre del usuario de la shell al pasado como parámetro.
 - ***showArgs:*** imprime en pantalla los argumentos del comando.
-- ***ps*** report the status of the current processes.
-- ***loop*** loops process.
-- ***kill*** kills process with the given pid.
-- ***nice*** changes the priority of process with given pid.
-- ***block*** blocks process with given pid.
-- ***unblock*** unblocks process with given pid.
-- ***testProcesses*** tests scheduler process creation.
-- ***testPriority***  tests scheduler priority.
-- ***testSync*** tests sem sync.
-- ***testNoSync*** tests sem sync should fail.
-- ***testMM*** tests memory manager.
-- ***pipe*** dump active pipes.
-- ***sem*** dump active semaphores.
-- ***wc*** counts the lines recieved from input.
-- ***filter*** filters the vocals recieved from input.
-- ***cat*** prints characters from input.
-- ***phylo*** phylosphers dining problem recieves number of initial phylosophers (max 6, min 2).
+- ***ps*** reporta el estado de los procesos.
+- ***loop*** crea un proceso el cual loopea.
+- ***kill*** mata el proceso cuyo pid es el recibido como argumento.
+- ***nice*** cambia la prioridad del proceso cuyo pid es el recibido como argumento.
+- ***block*** bloquea el proceso cuyo pid es el recibido como argumento.
+- ***unblock*** desbloquea el proceso cuyo pid es el recibido como argumento.
+- ***testProcesses*** prueba la creacion de procesos con el scheduler.
+- ***testPriority*** prueba la prioridad del scheduler.
+- ***testSync*** prueba la sincronizacion de semaforos (debe funcionar).
+- ***testNoSync*** prueba la sincronizacion de semaforos (debe fallar).
+- ***testMM*** prueba el memory manager.
+- ***pipe*** dump de los pipes activos.
+- ***sem*** dump de los semaforos activos.
+- ***wc*** cuenta las lineas recibidas como argumento.
+- ***filter***  filtra las vocales recibidas como argumento.
+- ***cat*** imprime en pantalla los caracteres recibidos como argumento.
+- ***phylo*** problema de los filosofos comiendo, recibe el numero inicial de filosofos como argumento (min 2, max 6).
 
 ### Teclas especiales
 
