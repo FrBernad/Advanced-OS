@@ -176,7 +176,6 @@ sys_ticksElapsed:
 	syscall 29
 
 
-
 cpuVendor:
 	push rbp
 	mov rbp, rsp
