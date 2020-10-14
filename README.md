@@ -1,6 +1,6 @@
 # TP2 - Advanced OS
 
-# Authors
+# Autores
 - [Francisco Bernad](https://github.com/FrBernad)
 - [Nicolás Rampoldi](https://github.com/NicolasRampoldi) 
 
