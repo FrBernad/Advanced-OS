@@ -11,6 +11,7 @@ GLOBAL sys_secsElapsed
 GLOBAL sys_kill
 GLOBAL sys_nice
 GLOBAL sys_block
+GLOBAL sys_unblock
 GLOBAL sys_getPID
 GLOBAL sys_malloc
 GLOBAL sys_free
@@ -19,6 +20,15 @@ GLOBAL sys_sem_open
 GLOBAL sys_sem_close
 GLOBAL sys_sem_post
 GLOBAL sys_sem_wait
+GLOBAL sys_dumpSemaphores
+GLOBAL sys_popen
+GLOBAL sys_closePipe
+GLOBAL sys_writePipe
+GLOBAL sys_readPipe
+GLOBAL sys_dumpPipes
+GLOBAL sys_wait
+GLOBAL sys_ticksElapsed
+
 
 GLOBAL cpuVendor
 GLOBAL cpuModel
@@ -114,29 +124,57 @@ sys_nice:
 sys_block:
 	syscall 12
 
-sys_getPID:
+sys_unblock:
 	syscall 13
 
-sys_malloc:
+sys_getPID:
 	syscall 14
 
-sys_free:
+sys_malloc:
 	syscall 15
 
-sys_yield:
+sys_free:
 	syscall 16
+
+sys_yield: 
+	syscall 17
 	
 sys_sem_open:
-	syscall 17
-
-sys_sem_close:
 	syscall 18
 
-sys_sem_post:
+sys_sem_close:
 	syscall 19
 
-sys_sem_wait:
+sys_sem_post:
 	syscall 20
+
+sys_sem_wait:
+	syscall 21
+
+sys_dumpSemaphores:
+	syscall 22
+
+sys_popen:
+	syscall 23
+
+sys_closePipe:
+	syscall 24
+
+sys_writePipe:
+	syscall 25
+
+sys_readPipe:
+	syscall 26
+
+sys_dumpPipes:
+	syscall 27
+
+sys_wait:
+	syscall 28
+
+sys_ticksElapsed:
+	syscall 29
+
 
 
 cpuVendor:

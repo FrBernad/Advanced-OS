@@ -4,7 +4,7 @@
 #include <systemCalls.h>
 #include <utils.h>
 
-#define MINOR_WAIT 1000000*5
+#define MINOR_WAIT 1000000*2
 #define TOTAL_PROCESSES 3
 
 static uint64_t my_getpid();
@@ -80,7 +80,7 @@ static uint64_t my_getpid() {
 
 static uint32_t my_create_process(char* name) {
       char* args[] = {name};
-      return sys_loadApp(&endless_loop, 1, args,0);
+      return sys_loadApp(&endless_loop, 1, args,0,0);
 }
 
 static uint64_t my_nice(uint64_t pid, uint64_t newPrio) {
@@ -96,7 +96,7 @@ static uint32_t my_block(uint32_t pid) {
 }
 
 static uint32_t my_unblock(uint32_t pid) {
-      return sys_block(pid);
+      return sys_unblock(pid);
 }
 
 static void bussy_wait(uint64_t n) {

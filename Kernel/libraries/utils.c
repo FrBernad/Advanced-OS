@@ -175,6 +175,18 @@ uint8_t stringcmp(char *str1, char *str2) {
       return str1[i] < str2[i] ? -1 : 1;
 }
 
+int log2(uint32_t n) {
+      if (n == 0) {
+            return -1;
+      }
+      int logValue = -1;
+      while (n) {  //
+            logValue++;
+            n >>= 1;
+      }
+      return logValue;
+}
+
 void cleanBuffer(t_buffer *buffer) {
       for (int i = 0; buffer->buffer[i] != 0; i++) {
             buffer->buffer[i] = 0;

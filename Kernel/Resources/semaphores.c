@@ -6,7 +6,7 @@
 #include <taskManager.h>
 #include <utils.h>
 
-#define MAX_SEMAPHORES 6
+#define MAX_SEMAPHORES 30
 
 typedef struct pNode {
       uint64_t processPID;
@@ -22,7 +22,7 @@ typedef struct pList {
 typedef struct {
       uint16_t attachedProcesses;
       t_pList* blockedProcesses;
-      char* name;
+      char name[20];
       uint8_t active;
       uint16_t count;
       uint8_t lock;
@@ -78,7 +78,6 @@ int sem_wait(int semIndex) {
 
       if (sem->count > 0) {
             sem->count--;
-            // printfBR("reduced count %d\n", sem->count);
             unlock_region(&sem->lock);
             return 1;
       }
@@ -94,15 +93,7 @@ int sem_wait(int semIndex) {
 
       unlock_region(&sem->lock);
 
-      // printfBR("blocking process pid %d\n", pid);
-
       blockProcess(pid);
-
-      // t_pNode* aux = sem->blockedProcesses->first;
-      // while (aux != NULL) {
-      //       printfBR("pid: %d\n", aux->processPID);
-      //       aux = aux->next;
-      // }
 
       return 1;
 }
@@ -124,8 +115,7 @@ int sem_post(int semIndex) {
       uint64_t processPID = dequeueProcess(sem->blockedProcesses);
       unlock_region(&sem->lock);
 
-      // printfBR("unblocking %d\n", processPID);
-      blockProcess(processPID);
+      unblockProcess(processPID);
 
       return 1;
 }
@@ -138,7 +128,6 @@ int sem_close(int semIndex) {
       lock_region(&sem->lock);
 
       sem->attachedProcesses--;
-
       if (sem->attachedProcesses > 0) {
             unlock_region(&sem->lock);
             return 1;
@@ -159,10 +148,13 @@ int sem_close(int semIndex) {
 }
 
 void dumpSemaphores() {
+      printfBR("Active semaphores:\n\n");
       for (int i = 0; i < MAX_SEMAPHORES; i++) {
             if (semaphores[i].active) {
                   printfBR("Sem index: %d\n", i);
+                  printfBR("Value: %d\n", semaphores[i].count);
                   dumpSemaphore(i);
+                  printfBR("\n\n");
             }
       }
 }
@@ -170,9 +162,9 @@ void dumpSemaphores() {
 void dumpSemaphore(int semIndex) {
       t_sem* sem = &semaphores[semIndex];
 
-      printfBR("Name: %s\n", sem->name);
-      printfBR("atatchedProcesses: %s\n", sem->attachedProcesses);
-      printfBR("Blocked processes:\n");
+      printfBR("      Name: %s\n", sem->name);
+      printfBR("          atatchedProcesses: %d\n", sem->attachedProcesses);
+      printfBR("          Blocked processes:\n");
       dumpList(sem->blockedProcesses);
 }
 
@@ -182,7 +174,7 @@ static int createSem(char* name, uint64_t initialCount) {
             return -1;
       }
       t_sem* sem = &semaphores[semIndex];
-      sem->name = name;
+      strcpy(sem->name, name);
       sem->active = 1;
       sem->lock = 0;
       sem->count = initialCount;
@@ -247,19 +239,23 @@ static uint64_t dequeueProcess(t_pList* blockedList) {
 
 static void freeList(t_pList* list) {
       t_pNode *p = list->first, *aux;
-
-      while (p != NULL) {
+      int i = 0;
+      while (p != NULL && i < list->size) {
             aux = p;
             p = p->next;
             freeBR(aux);
+            i++;
       }
       freeBR(list);
 }
 
 static void dumpList(t_pList* list){
       t_pNode *p = list->first;
+      int i = 0;
 
-      while(p!=NULL){
-            printfBR("PID: %d\n",p->processPID);
+      while (p != NULL && i < list->size) {
+            printfBR("  PID: %d\n", p->processPID);
+            p = p->next;
+            i++;
       }
 }

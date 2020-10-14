@@ -27,6 +27,7 @@ void initMemoryManager(void *memBase, uint64_t memSize){
       first = (node *)base;
       first->s.size = memorySize / BLOCK_SIZE;
       first->s.next = NULL;
+      printfBR("initialized free list\n");
 }
 
 void *mallocBR(uint32_t nbytes) {

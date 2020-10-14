@@ -10,27 +10,25 @@
 static void memToString(char* buffer, uint8_t* mem, int bytes);
 static void invalidOpcodeTrigger();
 static void zeroDivisionTrigger();
-static void loopFunction(int argc, char** argv);
+static void loopFunction();
 
 //devuelve el tiempo acutal del sistema
-void time(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
-            printStringLn("Invalid ammount of arguments.");
-            putchar('\n');
+void time(int argc, char** args) {
+      if (argc != 1) {
+            printfBR("Invalid ammount of arguments.\n");
             return;
       }
 
       uint8_t hours = sys_RTCTime(HOURS);
       uint8_t mins = sys_RTCTime(MINUTES);
       uint8_t secs = sys_RTCTime(SECONDS);
-      printfBR(" >Current time: %d:%d:%d\n\n", hours, mins, secs);
+      printfBR(" >Current time: %d:%d:%d\n", hours, mins, secs);
 }
 
 //devuelve el modelo y vendedor del cpu
-void cpuInfo(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
-            printStringLn("Invalid ammount of arguments.");
-            putchar('\n');
+void cpuInfo(int argc, char** args) {
+      if (argc != 1) {
+            printfBR("Invalid ammount of arguments.\n");
             return;
       }
       char vendor[13] = {0};
@@ -38,22 +36,20 @@ void cpuInfo(int argc, char** args, uint8_t fg) {
       cpuVendor(cpuInfo.cpuVendor);
       cpuInfo.model = cpuModel();
       printfBR(" > CPU Vendor: %s\n", cpuInfo.cpuVendor);
-      printfBR(" > CPU model: %s\n\n", cpuInfo.model);
+      printfBR(" > CPU model: %d\n\n", cpuInfo.model);
 }
 
 //Hace un dump de 32 bytes de memria a partir de la direccion pedida
-void printmem(int argc, char** args, uint8_t fg) {
-      if (argc != 1) {
-            printStringLn("Invalid ammount of arguments.");
-            putchar('\n');
+void printmem(int argc, char** args) {
+      if (argc != 2) {
+            printfBR("Invalid ammount of arguments.\n");
             return;
       }
 
       int error = 0;
-      uint64_t memDir = strToHex(args[0], &error);
+      uint64_t memDir = strToHex(args[1], &error);
       if (error) {
-            printStringLn("Invalid argument for function printmem (must be a hex value).");
-            putchar('\n');
+            printfBR("Invalid argument for function printmem (must be a hex value).\n");
             return;
       }
 
@@ -88,25 +84,23 @@ void printmem(int argc, char** args, uint8_t fg) {
       putchar('\n');
 }
 
+
 //Imprime la temperatura actual del cpu
-void cpuTemp(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
-            printStringLn("Invalid ammount of arguments.");
-            putchar('\n');
+void cpuTemp(int argc, char** args) {
+      if (argc != 1) {
+            printfBR("Invalid ammount of arguments.\n");
             return;
       }
       printfBR("CPU temp: %d C\n", sys_temp());
 }
 
 //causa una excepcion de dividir por cero
-void checkZeroException(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
-            printStringLn("Invalid ammount of arguments.");
-            putchar('\n');
+void checkZeroException(int argc, char** args) {
+      if (argc != 1) {
+            printfBR("Invalid ammount of arguments.\n");
             return;
       }
-      char* args2[] = {"Zero Division Trigger"};
-      sys_loadApp(&zeroDivisionTrigger, 1, args2, fg);
+      zeroDivisionTrigger();
 }
 
 static void zeroDivisionTrigger() {
@@ -117,13 +111,13 @@ static void zeroDivisionTrigger() {
 }
 
 //causa una excepcion de tipo invalid opcode
-void checkInvalidOpcodeException(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
+void checkInvalidOpcodeException(int argc, char** args) {
+      if (argc != 1) {
             printfBR("Invalid ammount of arguments.\n");
             return;
+            return;
       }
-      char* args2[] = {"Invalid Opcode Trigger"};
-      sys_loadApp(&invalidOpcodeTrigger, 1, args2, fg);
+      invalidOpcodeTrigger();
 }
 
 static void invalidOpcodeTrigger() {
@@ -131,7 +125,7 @@ static void invalidOpcodeTrigger() {
 }
 
 //Muestra los argumentos pasados al comando
-void showArgs(int argc, char** args, uint8_t fg) {
+void showArgs(int argc, char** args) {
       for (int i = 0; i < argc && i < MAX_ARGS; i++) {
             printfBR("arg[%d]=%s\n", i, args[i]);
       }
@@ -139,37 +133,39 @@ void showArgs(int argc, char** args, uint8_t fg) {
 }
 
 //Muestra los procesos
-void ps(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
+void ps(int argc, char** args) {
+      if (argc != 1) {
             printfBR("Invalid ammount of arguments.\n");
+            return;
       }
       sys_ps();
 }
 
 // Imprime su ID con un saludo cada una determinada cantidad de segundos.
-void loop(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
+void loop(int argc, char** args) {
+      if (argc != 1) {
             printfBR("Invalid ammount of arguments.\n");
+            return;
       }
-      char* args2[] = {"Loop!!!"};
-      sys_loadApp(loopFunction, 1, args2, fg);
+      loopFunction();
 }
 
-static void loopFunction(int argc, char** argv) {
+static void loopFunction() {
       uint64_t pid = sys_getPID();
       while (1) {
-            sleep(3);
-            printfBR("\n\nID: %d\n", pid);
+            waitTicks(8);
+            printfBR("%d", pid);
       }
 }
 
 // Mata un proceso dado su ID.
-void kill(int argc, char** args, uint8_t fg) {
-      if (argc != 1) {
+void kill(int argc, char** args) {
+      if (argc != 2) {
             printfBR("Invalid ammount of arguments.\n");
+            return;
       }
       int error = 0;
-      uint64_t pid = strToInt(args[0], &error);
+      uint64_t pid = strToInt(args[1], &error);
       if (error) {
             printStringLn("Invalid pid");
             return;
@@ -178,17 +174,18 @@ void kill(int argc, char** args, uint8_t fg) {
 }
 
 // Cambia la prioridad de un proceso dado su ID y la nueva prioridad.
-void nice(int argc, char** args, uint8_t fg) {
-      if (argc != 2) {
+void nice(int argc, char** args) {
+      if (argc != 3) {
             printfBR("Invalid ammount of arguments.\n");
+            return;
       }
       int error = 0;
-      uint64_t pid = strToInt(args[0], &error);
+      uint64_t pid = strToInt(args[1], &error);
       if (error) {
             printStringLn("Invalid pid");
             return;
       }
-      uint64_t priority = strToInt(args[1], &error);
+      uint64_t priority = strToInt(args[2], &error);
       if (error) {
             printStringLn("Invalid pid");
             return;
@@ -197,17 +194,32 @@ void nice(int argc, char** args, uint8_t fg) {
 }
 
 // Cambia el estado de un proceso entre bloqueado y listo dado su ID.
-void block(int argc, char** args, uint8_t fg) {
-      if (argc != 1) {
+void block(int argc, char** args) {
+      if (argc != 2) {
             printfBR("Invalid ammount of arguments.\n");
+            return;
       }
       int error = 0;
-      uint64_t pid = strToInt(args[0], &error);
+      uint64_t pid = strToInt(args[1], &error);
       if (error) {
             printStringLn("Invalid pid");
             return;
       }
       sys_block(pid);
+}
+
+void unblock(int argc, char** args){
+      if (argc != 2) {
+            printfBR("Invalid ammount of arguments.\n");
+            return;
+      }
+      int error = 0;
+      uint64_t pid = strToInt(args[1], &error);
+      if (error) {
+            printStringLn("Invalid pid");
+            return;
+      }
+      sys_unblock(pid);
 }
 
 static void memToString(char* buffer, uint8_t* mem, int bytes) {
@@ -221,41 +233,103 @@ static void memToString(char* buffer, uint8_t* mem, int bytes) {
       }
 }
 
-void testMM(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
+void testMM(int argc, char** args) {
+      if (argc != 1) {
             printfBR("Invalid ammount of arguments.\n");
+            return;
       }
-      char* args2[] = {"testMM"};
-      sys_loadApp(test_mm, 1, args2, fg);
+      test_mm();
 }
 
-void testProcesses(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
+void testProcesses(int argc, char** args) {
+      if (argc != 1) {
             printfBR("Invalid ammount of arguments.\n");
+            return;
       }
-      char* args2[] = {"testProcesses"};
-      sys_loadApp(test_processes, 1, args2, fg);
+      test_processes();
 }
 
-void testPriority(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
+void testPriority(int argc, char** args) {
+      if (argc != 1) {
             printfBR("Invalid ammount of arguments.\n");
+            return;
       }
-      char* args2[] = {"testProcesses"};
-      sys_loadApp(test_priority, 1, args2, fg);
+      test_priority();
 }
 
-void testSync(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
+void testSync(int argc, char** args) {
+      if (argc != 1) {
             printfBR("Invalid ammount of arguments.\n");
+            return;
       }
-      char* args2[] = {"testSync"};
-      sys_loadApp(test_sync, 1, args2, fg);
+      test_sync();
 }
-void testNoSync(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
+
+void testNoSync(int argc, char** args) {
+      if (argc != 1) {
             printfBR("Invalid ammount of arguments.\n");
+            return;
       }
-      char* args2[] = {"testNoSync"};
-      sys_loadApp(test_no_sync, 1, args2, fg);
+      test_no_sync();
+}
+
+void dumpSemaphores(int argc, char** args) {
+      if (argc != 1) {
+            printfBR("Invalid ammount of arguments.\n");
+            return;
+      }
+      sys_dumpSemaphores();
+}
+
+void dumpPipes(int argc, char** args) {
+      if (argc != 1) {
+            printfBR("Invalid ammount of arguments.\n");
+            return;
+      }
+      sys_dumpPipes();
+}
+
+void cat(int argc, char** args){
+      if (argc != 1) {
+            printfBR("Invalid ammount of arguments.\n");
+            return;
+      }
+
+      int c;
+      while((c=getchar())!=-1){
+            putchar(c);
+      }
+}
+
+//counts the lines recieved from input
+void wc(int argc, char** args) {
+      if (argc != 1) {
+            printfBR("Invalid ammount of arguments.\n");
+            return;
+      }
+
+      uint16_t counter = 1;
+      int c;
+
+      while ((c = getchar()) != -1) {
+            putchar(c);
+            if ((char)c == '\n')
+                  counter++;            
+      }
+      printfBR("total lines: %d\n",counter);
+}
+
+void filter(int argc, char** args){
+        if (argc != 1) {
+            printfBR("Invalid ammount of arguments.\n");
+            return;
+      }
+
+      int c;
+      while ((c = getchar()) != -1) {
+            if (!IS_VOWEL(c))
+                  putchar(c);
+      }
+
+      printfBR("\n");
 }

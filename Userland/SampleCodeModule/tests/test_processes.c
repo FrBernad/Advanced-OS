@@ -50,7 +50,7 @@ void test_processes() {
                         switch (action) {
                               case 0:
                                     if (p_rqs[rq].state == RUNNING || p_rqs[rq].state == BLOCKED) {
-                                          if (my_kill(p_rqs[rq].pid) == 0) {
+                                          if (my_kill(p_rqs[rq].pid) == -1) {
                                                 printfBR("Error killing process\n");
                                                 return;
                                           }
@@ -61,7 +61,7 @@ void test_processes() {
 
                               case 1:
                                     if (p_rqs[rq].state == RUNNING) {
-                                          if (my_block(p_rqs[rq].pid) == 0) {
+                                          if (my_block(p_rqs[rq].pid) == -1) {
                                                 printfBR("Error blocking process\n");
                                                 return;
                                           }
@@ -76,7 +76,7 @@ void test_processes() {
                   // Randomly unblocks processes
                   for (rq = 0; rq < MAX_PROCESSES; rq++) {
                         if (p_rqs[rq].state == BLOCKED && GetUniform(2) % 2) {
-                              if (my_unblock(p_rqs[rq].pid) == 0) {
+                              if (my_unblock(p_rqs[rq].pid) == -1) {
                                     printfBR("Error unblocking process\n");
                                     return;
                               }
@@ -89,7 +89,7 @@ void test_processes() {
 
 static uint32_t my_create_process(char* name) {
       char* args[] = {name};
-      return sys_loadApp(&endless_loop, 1,args,0);
+      return sys_loadApp(&endless_loop, 1,args,0,0);
 }
 
 static uint32_t my_kill(uint32_t pid) {
@@ -101,7 +101,7 @@ static uint32_t my_block(uint32_t pid) {
 }
 
 static uint32_t my_unblock(uint32_t pid) {
-      return sys_block(pid);
+      return sys_unblock(pid);
 }
 
 static void endless_loop(int argc, char** args) {

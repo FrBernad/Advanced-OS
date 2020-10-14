@@ -52,7 +52,7 @@ uint32_t uintToBaseWL(uint64_t value, char *buffer, uint32_t base, uint32_t leng
       }
 
       // Terminate string in buffer.
-      *p = 0;
+      p[lenght] = 0;
 
       //Reverse string in buffer.
       p1 = buffer;
@@ -147,6 +147,20 @@ char *strtok(char *string, char *result, const char delim) {
             }
       }
       return result;
+}
+
+int atoi(char *str) {
+      int res = 0;
+      int i = 0;
+      int sign=1;
+      if(str[i]=='-'){
+            sign=-1;
+            i++;
+      }
+      for (; str[i] != '\0'; ++i)
+            res = res * 10 + str[i] - '0';
+
+      return res*sign;
 }
 
 uint64_t strToInt(char *str, int *error) {
@@ -414,4 +428,29 @@ char *itoa(int value, char *buffer, int base) {
 void sleep(int segs){
       int timeout=sys_secsElapsed()+segs;
       while(sys_secsElapsed()<=timeout);
+}
+
+void waitTicks(int ticks){
+      int finalTicks = sys_ticksElapsed() + ticks;
+      while (sys_ticksElapsed() <= finalTicks);
+}
+
+int tokenizeBuffer(char token, char **dest, char *source, int max){
+      int index = 0;
+
+      if (*source != token && *source != '\0')
+            dest[index++] = source;
+
+      while (*source != '\0') {
+            if (*source == token) {
+                  *source = 0;
+                  if (*(source + 1) != token && (*(source + 1) != '\0')) {
+                        if (index >= max)
+                              return index;
+                        dest[index++] = source + 1;
+                  }
+            }
+            source++;
+      }
+      return index;
 }

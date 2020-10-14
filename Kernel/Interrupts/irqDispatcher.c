@@ -1,12 +1,13 @@
 #include <keyboardDriver.h>
 #include <stdint.h>
 #include <timerTick.h>
+#include <stringLib.h>
 
 #define TIMER_TICK 0
 #define KEYBOARD 1
 
 static void int_20();
-static void int_21(uint64_t rsp);
+static void int_21(uint64_t * rsp);
 
 void irqDispatcher(uint64_t irq, uint64_t rsp) {
       switch (irq) {
@@ -15,7 +16,7 @@ void irqDispatcher(uint64_t irq, uint64_t rsp) {
                   break;
 
             case KEYBOARD:
-                  int_21(rsp);
+                  int_21((uint64_t *)rsp);
                   break;
       }
 }
@@ -24,6 +25,6 @@ static void int_20() {
       timerHandler();
 }
 
-static void int_21(uint64_t rsp) {
+static void int_21(uint64_t * rsp) {
       keyboardHandler(rsp);
 }

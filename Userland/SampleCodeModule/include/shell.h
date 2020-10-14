@@ -3,14 +3,14 @@
 
 #include <buffer.h>
 
-#define COMMANDS 20
-#define MAX_ARGS 4
+#define COMMANDS 27
+#define MAX_ARGS 10
 
 typedef struct t_command t_command;
 typedef struct t_shellData t_shellData;
 
 typedef struct t_command {
-      void (*command)(int, char **, uint8_t);
+      void (*command)(int, char **);
       char *name;
       char *description;
 } t_command;

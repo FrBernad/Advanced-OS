@@ -1,34 +1,40 @@
-#include <shell.h>
 #include <commands.h>
 #include <keys.h>
 #include <lib.h>
 #include <registers.h>
+#include <shell.h>
 #include <stdint.h>
 #include <stringLib.h>
 #include <systemCalls.h>
 #include <utils.h>
+#include <phylo.h>
 
 static void initShell(t_shellData* shellData);
 static void shellText(t_shellData* shellData);
 static void processCommand(t_shellData* shellData);
 static void processChar(char c, t_shellData* shellData);
+static int processPipe(int pipeIndex, char** argv, int argc, int fg);
+static int getCommand(char* commandName);
+static int getPipeIndex(int argc, char** argv);
+static void waitForPipes(uint32_t pids[2], int pipe, int fg);
 
 static char* regNames[] = {"R15: ", "R14: ", "R13: ", "R12: ", "R11: ", "R10: ", "R9: ",
                            "R8: ", "RSI: ", "RDI: ", "RBP: ", "RDX: ", "RCX: ", "RBX: ",
                            "RAX: ", "RIP: ", "RSP: "};
 
 static t_shellData shell;
+static int pipeID;
 
-void runShell(int argc, char * argv[]) {
+void runShell(int argc, char* argv[]) {
       initShell(&shell);
-      char c;
+      int c;
       while (1) {
             c = getchar();
-            processChar(c,&shell);
+            processChar(c, &shell);
       }
 }
 
-//inicia la shell y todas sus estructuras 
+//inicia la shell y todas sus estructuras
 static void initShell(t_shellData* shellData) {
       t_command commandsData[] = {
           {&help, "help", "shows the list of commands and their use"},
@@ -45,12 +51,20 @@ static void initShell(t_shellData* shellData) {
           {&loop, "loop", "loops process"},
           {&kill, "kill", "kills process with the given pid"},
           {&nice, "nice", "changes the priority of process with given pid"},
-          {&block, "block", "blocks or unblocks process with given pid"},
+          {&block, "block", "blocks process with given pid"},
+          {&unblock, "unblock", "unblocks process with given pid"},
           {&testProcesses, "testProcesses", "test scheduler process creation"},
           {&testPriority, "testPriority", "test scheduler priority"},
           {&testSync, "testSync", "test sem sync"},
           {&testNoSync, "testNoSync", "test sem sync, should fail"},
-          {&testMM, "testMM", "tests memory manager"}};
+          {&testMM, "testMM", "tests memory manager"},
+          {&dumpPipes, "pipe", "dump active pipes"},
+          {&dumpSemaphores, "sem", "dump active semaphores"},
+          {&wc, "wc", "counts the lines recieved from input"},
+          {&filter, "filter", "filters the vocals recieved from input"},
+          {&cat, "cat", "prints characters from input"},
+          {&phylo, "phylo", "phylosphers dining problem, recieves number of initial phylosophers (max 6, min 2)"}
+      };
 
       for (int i = 0; i < COMMANDS; i++) {
             shellData->commands[i].command = commandsData[i].command;
@@ -64,7 +78,7 @@ static void initShell(t_shellData* shellData) {
 }
 
 //procesa el caracter recibido actua segun el mismo
-static void processChar(char c, t_shellData * shellData) {
+static void processChar(char c, t_shellData* shellData) {
       if (c != 0) {
             switch (c) {
                   case CLEAR_SCREEN:
@@ -95,73 +109,162 @@ static void processChar(char c, t_shellData * shellData) {
 }
 
 //procesa el comando, tokenizando lo ingresado.
-static void processCommand(t_shellData * shellData) {
+static void processCommand(t_shellData* shellData) {
       int argc = 0;
-      char arg1[BUFFER_SIZE] = {0}, arg2[BUFFER_SIZE] = {0}, arg3[BUFFER_SIZE] = {0}, arg4[BUFFER_SIZE] = {0};
-      char* argv[MAX_ARGS] = {arg1, arg2, arg3, arg4};
-      char command[BUFFER_SIZE] = {0};
-      uint8_t fg=1;
+      char* argv[MAX_ARGS] = {0};
+      uint8_t fg = 1;
 
-      strtok(0, 0, ' ');
-      strtok(shellData->buffer.buffer, command, ' ');    //parse buffer
-      strtok(0, command, ' ');                           //parse buffer
+      argc = tokenizeBuffer(' ', argv, shellData->buffer.buffer, MAX_ARGS);
 
-      while (argc < MAX_ARGS && strtok(0, argv[argc], ' ')) {
-            argc++;
-      };
-      strtok(0, 0, ' ');
+      int pipeIndex = getPipeIndex(argc, argv);
 
-      if(argv[argc-1][0]=='&'){
-            fg=0;
+      if (pipeIndex == 0 || pipeIndex==argc) {
+            printfBR("Invalid use of pipe \n");
+            return;
+      }
+
+      if (argv[argc - 1][0] == '&') {
+            fg = 0;
             argc--;
       }
 
-      for (int i = 0; i < COMMANDS; i++) {
-            if (stringcmp(shellData->commands[i].name, command) == 0) {
-                  shellData->commands[i].command(argc, argv, fg);
+      if (pipeIndex != -1) {
+            if (processPipe(pipeIndex, argv, argc, fg) == -1) {
+                  printfBR("Invalid commands for pipe \n");
                   return;
             }
+            return;
       }
-      printStringLn("Invalid command");
+
+      int commandIndex = getCommand(argv[0]);
+
+      if (commandIndex == -1) {
+            printStringLn("Invalid command");
+            return;
+      }
+
+      sys_loadApp(shellData->commands[commandIndex].command, argc, argv, fg, 0);
+}
+
+static int processPipe(int pipeIndex, char** argv, int argc, int fg) {
+      char* auxArgv[MAX_ARGS];
+      int auxArgc = 0;
+      uint16_t fd[2];
+      uint32_t pids[2];
+
+      static char* shellPipeName = "_shellPipe";
+
+      for (int i = pipeIndex + 1, j = 0; i < argc; i++) {
+            auxArgv[j++] = argv[i];
+            auxArgc++;
+      }
+
+      int commandIndex = getCommand(auxArgv[0]);
+
+      if (commandIndex == -1)
+            return -1;
+
+      char pipeName[20];
+
+      uintToBase(pipeID++, pipeName, 10);
+      strcat(pipeName, shellPipeName);
+
+      int pipe = sys_popen(pipeName);
+
+      if (pipe == -1) {
+            printfBR("Error creating pipe");
+            return -1;
+      }
+
+      fd[0] = pipe;  //fd[0]: in, fd[1]: out
+      fd[1] = 0;
+
+      pids[0] = sys_loadApp(shell.commands[commandIndex].command, auxArgc, auxArgv, 0, fd);
+
+      auxArgc = 0;
+
+      for (int i = 0; i < pipeIndex; i++) {
+            auxArgv[i] = argv[i];
+            auxArgc++;
+      }
+
+      commandIndex = getCommand(auxArgv[0]);
+
+      if (commandIndex == -1)
+            return -1;
+
+      fd[0] = 0;
+      fd[1] = pipe;
+
+      pids[1] = sys_loadApp(shell.commands[commandIndex].command, auxArgc, auxArgv, fg, fd);
+      waitForPipes(pids, pipe, fg);
+
+      return 1;
+}
+
+static void waitForPipes(uint32_t pids[2], int pipe, int fg) {
+      int a = -1;
+      if (fg == 0) 
+            sys_wait(pids[1]);
+      sys_writePipe(pipe, (char*)&a);
+      sys_wait(pids[0]);
+      sys_closePipe(pipe);
+}
+
+static int getCommand(char* commandName) {
+      for (int i = 0; i < COMMANDS; i++) {
+            if (stringcmp(shell.commands[i].name, commandName) == 0) {
+                  return i;
+            }
+      }
+      return -1;
+}
+
+static int getPipeIndex(int argc, char** argv) {
+      for (int i = 0; i < argc; i++) {
+            if (stringcmp(argv[i], "|") == 0) {
+                  return i;
+            }
+      }
+      return -1;
 }
 
 //muestra en pantalla el texto de la shell
-static void shellText(t_shellData * shellData) {
+static void shellText(t_shellData* shellData) {
       printStringWC(shellData->username, BLACK, LIGHT_BLUE);
       printStringWC(" $ > ", BLACK, LIGHT_BLUE);
 }
 
 //muestra la informacion recoletada sobre los registros obtenidos al haber presionado ctrl + s
-void inforeg(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
+void inforeg(int argc, char** args) {
+      if (argc != 1) {
             printStringLn("Invalid ammount of arguments.");
             putchar('\n');
             return;
       }
       uint64_t* regData = sys_inforeg();
       for (int i = 0; i < REGISTERS; i++) {
-            printString(" > ");
-            printString(regNames[i]);
-            printHexWL(regData[i],8);
+            printfBR(" > %s", regNames[i]);
+            printHexWL(regData[i], 8);
             putchar('\n');
       }
       putchar('\n');
 }
 
 //cambia el nombre del usuario mostrado en la shell
-void changeUsername(int argc, char** argv, uint8_t fg) {
-      if (argc != 1) {
+void changeUsername(int argc, char** argv) {
+      if (argc != 2) {
             printStringLn("Invalid ammount of arguments.");
             putchar('\n');
             return;
       }
       cleanString(shell.username);
-      strcpy(argv[0],shell.username);
+      strcpy(argv[1], shell.username);
 }
 
 //muestra la lista de comandos con sus descripciones
-void help(int argc, char** args, uint8_t fg) {
-      if (argc != 0) {
+void help(int argc, char** args) {
+      if (argc != 1) {
             printStringLn("Invalid ammount of arguments.");
             putchar('\n');
             return;

@@ -18,7 +18,7 @@ void printStringLn(char* str) {
       putchar('\n');
 }
 
-char getchar(){
+int getchar(){
       return sys_getchar();
 }
 
@@ -37,7 +37,7 @@ void printHex(uint64_t num) {
 }
 
 void printHexWL(uint64_t num, int lenght) {
-      char buffer[10];
+      char buffer[20];
       uintToBaseWL(num, buffer, 16,8);
       printString(buffer);
 }
@@ -130,4 +130,19 @@ static int processString(char const* fmt, va_list arg) {
             }
       }
       return length;
+}
+
+char* strcat(char* destination, char* source) {
+      // make ptr point to the end of destination string
+      char* ptr = destination + strlen(destination);
+
+      // Appends characters of source to the destination string
+      while (*source != '\0')
+            *ptr++ = *source++;
+
+      // null terminate destination string
+      *ptr = '\0';
+
+      // destination is returned by standard strcat()
+      return destination;
 }

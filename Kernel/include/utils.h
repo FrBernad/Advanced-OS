@@ -24,5 +24,6 @@ void cleanBuffer(t_buffer *buffer);
 void cleanString(char *str);
 int strlen(char *str);
 char *itoa(int value, char *buffer, int base);
+int log2(uint32_t n);
 
 #endif

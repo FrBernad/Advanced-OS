@@ -4,16 +4,14 @@
 #include <stringLib.h>
 #include <utils.h>
 
-#define MAX_PIPES 20
+#define TOTAL_PIPES 20
 #define PIPE_BUF 1024
 
 typedef struct {
       char buffer[PIPE_BUF];
-      char* name;
-      uint16_t dim;
+      char name[20];
       uint16_t front;
       uint16_t rear;
-      uint16_t size;
       uint16_t attachedProcesses;
 
       uint16_t writeLock;
@@ -22,7 +20,7 @@ typedef struct {
 } t_pipe;
 
 typedef struct {
-      t_pipe pipes[MAX_PIPES];
+      t_pipe pipes[TOTAL_PIPES];
       uint16_t lock;
 } t_pipes;
 
@@ -33,9 +31,8 @@ static int isValid(int pipeIndex);
 static void dumpPipe(int pipeIndex);
 
 //queue functions
-static int queueIsFull(t_pipe* pipe);
-static void queueInsert(t_pipe* pipe, char data);
-static int queueRemoveData(t_pipe* pipe);
+static void queueInsert(t_pipe * pipe, char c);
+static char queueRemove(t_pipe * pipe);
 
 static t_pipes pipes;
 
@@ -62,10 +59,11 @@ int popen(char* pipeName) {
 
       sem_post(pipes.lock);
 
-      return pipeIndex;
+      return pipeIndex+1;
 }
 
 int closePipe(int pipeIndex) {
+    pipeIndex--;
     if(!isValid(pipeIndex))
         return -1;
 
@@ -92,32 +90,18 @@ int closePipe(int pipeIndex) {
 
 
 int writePipe(int pipeIndex, char* string) {
+      pipeIndex--;
       if (!isValid(pipeIndex))
             return -1;
 
-      while (*string != 0) {
-            writeCharPipe(pipeIndex, *string++);
-      }
+      while (*string != 0) 
+            writeCharPipe(pipeIndex+1, *string++);
 
       return 0;
 }
 
-int readPipe(int pipeIndex) {
-      if (!isValid(pipeIndex))
-            return -1;
-
-      t_pipe* pipe = &pipes.pipes[pipeIndex];
-
-      sem_wait(pipe->readLock);
-
-      int c = queueRemoveData(pipe);
-
-      sem_post(pipe->writeLock);
-
-      return c;
-}
-
 int writeCharPipe(int pipeIndex, char c) {
+      pipeIndex--;
       if (!isValid(pipeIndex))
             return -1;
 
@@ -132,34 +116,57 @@ int writeCharPipe(int pipeIndex, char c) {
       return 0;
 }
 
+int readPipe(int pipeIndex) {
+      pipeIndex--;
+      if (!isValid(pipeIndex))
+            return -1;
+
+      t_pipe* pipe = &pipes.pipes[pipeIndex];
+
+      sem_wait(pipe->readLock);
+
+      int c = queueRemove(pipe);
+
+      sem_post(pipe->writeLock);
+
+      return c;
+}
+
 void dumpPipes(){
-    for (int i = 0; i < MAX_PIPES; i++)
-    {
-        if(pipes.pipes[i].active){
-            printfBR("Pipe index: %d\n",i);
-            dumpPipe(i);
-        }
+      printfBR("Active pipes:\n");
+      for (int i = 0; i < TOTAL_PIPES; i++) {
+            if (pipes.pipes[i].active) {
+                  printfBR("\n");
+                  printfBR("Pipe index: %d\n", i);
+                  dumpPipe(i);
+                  printfBR("\n\n");
+            }
     }
+    printfBR("\n");
 }
 
 static void dumpPipe(int pipeIndex){
       t_pipe* pipe = &pipes.pipes[pipeIndex];
 
-      printfBR("Name: %s\n", pipe->name);
-      printfBR("atatchedProcesses: %s\n", pipe->attachedProcesses);
-      printfBR("read sem: %d\n", pipe->readLock);
-      printfBR("write sem: %d\n", pipe->writeLock);
+      printfBR("   Name: %s\n", pipe->name);
+      printfBR("   atatchedProcesses: %d\n", pipe->attachedProcesses);
+      printfBR("   read sem: %d\n", pipe->readLock);
+      printfBR("   write sem: %d\n", pipe->writeLock);
 
-      for (int i = pipe->front; i != pipe->rear; i = i + 1 % PIPE_BUF)
+      printfBR("   Buffer content: ");
+
+      for (int i = pipe->front; i != pipe->rear; i = (i + 1) % PIPE_BUF)
             putchar(pipe->buffer[i]);
 
+      printfBR("\n\n");
+
+      printfBR("   blocked by read: \n");
+      dumpSemaphore(pipe->readLock);
       printfBR("\n");
 
-      printfBR("blocked by read: \n");
-      dumpSemaphore(pipe->readLock);
-
-      printfBR("blocked by write: \n");
+      printfBR("   blocked by write: \n");
       dumpSemaphore(pipe->writeLock);
+      printfBR("\n");
 }
 
 static int createPipe(char* pipeName) {
@@ -171,10 +178,8 @@ static int createPipe(char* pipeName) {
       t_pipe* pipe = &pipes.pipes[pipeIndex];
 
       pipe->active = 1;
-      pipe->name = pipeName;
-      pipe->dim = PIPE_BUF;
-      pipe->size = 0;
-      pipe->rear = -1;
+      strcpy(pipe->name, pipeName);
+      pipe->rear = 0;
       pipe->front = 0;
       pipe->attachedProcesses = 0;
 
@@ -188,7 +193,7 @@ static int createPipe(char* pipeName) {
       char writeSem[25] = {0};
       strcpy(writeSem, pipeName);
       strcat(writeSem, "_W");
-      if ((pipe->readLock = sem_open(writeSem, PIPE_BUF)) == -1) {
+      if ((pipe->writeLock = sem_open(writeSem, PIPE_BUF)) == -1) {
             return -1;
       }
 
@@ -196,7 +201,7 @@ static int createPipe(char* pipeName) {
 }
 
 static int getAvailablePipe() {
-      for (int i = 0; i < MAX_PIPES; i++) {
+      for (int i = 0; i < TOTAL_PIPES; i++) {
             if (!pipes.pipes[i].active) {
                   return i;
             }
@@ -205,7 +210,7 @@ static int getAvailablePipe() {
 }
 
 static int searchPipe(char* pipeName) {
-      for (int i = 0; i < MAX_PIPES; i++) {
+      for (int i = 0; i < TOTAL_PIPES; i++) {
             if (pipes.pipes[i].active) {
                   if (stringcmp(pipeName, pipes.pipes[i].name) == 0) {
                         return i;
@@ -216,35 +221,21 @@ static int searchPipe(char* pipeName) {
 }
 
 static int isValid(int pipeIndex) {
-      if (pipeIndex < 0 || pipeIndex > MAX_PIPES || !pipes.pipes[pipeIndex].active)
+      if (pipeIndex < 0 || pipeIndex >= TOTAL_PIPES || !pipes.pipes[pipeIndex].active)
             return 0;
       return 1;
 }
 
-static int queueIsFull(t_pipe* pipe) {
-      return pipe->size == pipe->dim;
+static void queueInsert(t_pipe * pipe, char c) {
+      pipe->buffer[pipe->rear] = c;
+
+      pipe->rear = (pipe->rear + 1) % PIPE_BUF;
 }
 
-static void queueInsert(t_pipe* pipe, char data) {
-      if (!queueIsFull(pipe)) {
-            if (pipe->rear == pipe->dim - 1) {
-                  pipe->rear = -1;
-            }
-            pipe->buffer[++pipe->rear] = data;
-            pipe->size++;
-      }
-}
+static char queueRemove(t_pipe * pipe) {
+      char ans = pipe->buffer[pipe->front];
 
-static int queueRemoveData(t_pipe* pipe) {
-      int toReturn;
-      if (pipe->size != 0) {
-            toReturn = pipe->buffer[pipe->front++];
-            if (pipe->front == pipe->dim) {
-                  pipe->front = 0;
-            }
-            pipe->size--;
-      } else {
-            toReturn = -1;
-      }
-      return toReturn;
+      pipe->front = (pipe->front + 1) % PIPE_BUF;
+
+      return ans;
 }

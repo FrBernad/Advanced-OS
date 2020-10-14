@@ -4,8 +4,9 @@
 #include <screens.h>
 #include <stdint.h>
 
-void keyboardHandler(uint64_t rsp);
-char getchar();
+void keyboardHandler(uint64_t * rsp);
+int getKeyboardChar();
 uint64_t* getSnapshot();
+int initKeyboardHandler();
 
 #endif

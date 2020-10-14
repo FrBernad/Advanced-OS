@@ -8,7 +8,10 @@
 #include <stringLib.h>
 #include <timerTick.h>
 #include <videoDriver.h>
+#include <utils.h>
+#include <keyboardDriver.h>
 #include <interrupts.h>
+#include <pipes.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -52,11 +55,15 @@ int main() {
       initVideoDriver(BLACK, WHITE);
 
       initMemoryManager(sampleCodeModuleHeapAddress,HEAP_MEMORY_SIZE);
- 
+
+      initPipes();
+
+      initKeyboardHandler();
+
       initScheduler();
 
       char* argv[] = {"SCM"};
-      addProcess(sampleCodeModuleAddress, 1, argv, 1);
+      addProcess(sampleCodeModuleAddress, 1, argv, 1,0);
       _hlt();
 
       printStringLn("Something went wrong!");
