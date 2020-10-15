@@ -10,6 +10,7 @@
 1. Ingresar a la carpeta ***"Toolchain"*** y ejecutar el comando `make all`, alternativamente se puede pasar un parametro para determinar que memory manager se utilizara de la siguiente forma: 
 - `make MM=BUDDY_MM all` (para utilizar el buddy).
 - `make MM=FREE_LIST_MM all` (para utilizar free list).
+
 Por defecto se utilizara free list en caso de no especificar.
 
 1. En la carpeta principal, ejecutar el comando `make all`.
