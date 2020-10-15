@@ -57,6 +57,7 @@ void initMemoryManager(void *memBase, uint64_t totalSize) {
       }
 
       addToLevel(&levelsList[levels - 1], base, levels - 1);
+      printfBR("init buddyMM\n");
 }
 
 void *mallocBR(uint32_t bytes) {
