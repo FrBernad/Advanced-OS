@@ -22,7 +22,7 @@ static void list_push(list_t *list, list_t *entry);
 static void list_remove(list_t *entry);
 static list_t *list_pop(list_t *list);
 static int list_is_empty(list_t *list);
-static uint8_t powerof2(uint32_t num) ;
+static uint8_t powerof2(uint32_t num);
 
 static void addToLevel(list_t *list, list_t *node, uint8_t level);
 
@@ -37,9 +37,7 @@ static uint32_t maxMemSize;
 static list_t levelsList[MAX_LEVELS];
 static uint8_t levels;
 
-
 void initMemoryManager(void *memBase, uint64_t totalSize) {
-
       base = memBase;
       maxMemSize = totalSize;
       levels = (int)log2(totalSize) - MIN_ALLOC_LOG_2 + 1;
@@ -47,7 +45,7 @@ void initMemoryManager(void *memBase, uint64_t totalSize) {
       if (memBase == NULL)
             return;
 
-      if (levels > MAX_LEVELS) 
+      if (levels > MAX_LEVELS)
             levels = MAX_LEVELS;
 
       for (size_t i = 0; i < levels; i++) {
@@ -57,7 +55,6 @@ void initMemoryManager(void *memBase, uint64_t totalSize) {
       }
 
       addToLevel(&levelsList[levels - 1], base, levels - 1);
-      printfBR("init buddyMM\n");
 }
 
 void *mallocBR(uint32_t bytes) {
@@ -95,7 +92,6 @@ void freeBR(void *ptr) {
 
       list_t *insertp = (list_t *)ptr - 1;
 
-
       insertp->isFree = 1;
 
       list_t *buddy = getBuddy(insertp);
@@ -109,6 +105,34 @@ void freeBR(void *ptr) {
             buddy = getBuddy(insertp);
       }
       list_push(&levelsList[insertp->level], insertp);
+}
+
+void dumpMM() {
+      list_t *p, *aux;
+      uint32_t index = 0;
+      uint32_t availableSpace = 0;
+
+      printfBR("Buddy MM dump\n");
+
+      for (int i = levels - 1; i >= 0; i--) {
+            p = &levelsList[i];
+
+            if (!list_is_empty(p)) {
+                  printfBR("    Free blocks of size: 2^%d\n", i + MIN_ALLOC_LOG_2);
+
+                  for (aux = p->next, index = 0; aux != p; index++, aux = aux->next) {
+                        printfBR("        Block number: %d\n", index);
+                        printfBR("            level: %d\n", aux->level);
+                        if (aux->isFree)
+                              printfBR("            state: free");
+                        else
+                              printfBR("            state: used");
+                  }
+                  printfBR("\n\n");
+                  availableSpace += index * BIN_POW(i + MIN_ALLOC_LOG_2);
+            }
+      }
+      printfBR("Available Space: %d\n", availableSpace);
 }
 
 static void addToLevel(list_t *list, list_t *node, uint8_t level) {
@@ -127,7 +151,8 @@ static list_t *getBuddy(list_t *node) {
 
 static int getFirstAvailableLevel(uint8_t minLevel) {
       uint8_t selectedLevel;
-      for (selectedLevel = minLevel; selectedLevel < levels && list_is_empty(&levelsList[selectedLevel]);selectedLevel++);
+      for (selectedLevel = minLevel; selectedLevel < levels && list_is_empty(&levelsList[selectedLevel]); selectedLevel++)
+            ;
       if (selectedLevel > levels) {
             return -1;
       }
@@ -140,7 +165,7 @@ static uint8_t getLevel(uint32_t bytes) {
             return 0;
 
       aux -= MIN_ALLOC_LOG_2;
-      if (powerof2(bytes)) //se es potencia me alcanza sino necesito mas
+      if (powerof2(bytes))  //se es potencia me alcanza sino necesito mas
             return aux;
 
       return aux + 1;

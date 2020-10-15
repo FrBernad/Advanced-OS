@@ -82,4 +82,7 @@ void wc(int argc, char **args);
 // filters the vocals recieved from input
 void filter(int argc, char **args);
 
+// makes a dump of the memory manager state
+void dumpMM(int argc, char **args);
+
 #endif

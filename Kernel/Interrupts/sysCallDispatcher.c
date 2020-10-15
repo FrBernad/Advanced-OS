@@ -41,8 +41,9 @@
 #define SYS_PIPE_DUMP_ID 27
 #define SYS_WAIT_ID 28
 #define SYS_TICKS_ELAPSED_ID 29
+#define SYS_DUMP_MM_ID 30
 
-#define SYSCALLS 30
+#define SYSCALLS 31
 
 uint64_t sysCallDispatcher(t_registers *r) {
       if (r->rax >= 0 && r->rax < SYSCALLS) {
@@ -165,6 +166,10 @@ uint64_t sysCallDispatcher(t_registers *r) {
 
                   case SYS_TICKS_ELAPSED_ID:
                         return ticksElapsed();
+                        break;
+
+                  case SYS_DUMP_MM_ID:
+                        dumpMM();
                         break;
             }
       }

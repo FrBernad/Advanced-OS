@@ -333,3 +333,11 @@ void filter(int argc, char** args){
 
       printfBR("\n");
 }
+
+void dumpMM(int argc, char** args) {
+      if (argc != 1) {
+            printfBR("Invalid ammount of arguments.\n");
+            return;
+      }
+      sys_dumpMM();
+}

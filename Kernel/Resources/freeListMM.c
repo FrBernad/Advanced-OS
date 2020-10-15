@@ -18,6 +18,7 @@ typedef union node node;
 static void joinBlocks(node *left, node *right);
 
 static uint64_t memorySize;
+static uint64_t blocksAvailable;
 static node *first;
 static node *base;
 
@@ -25,9 +26,8 @@ void initMemoryManager(void *memBase, uint64_t memSize){
       base = memBase;
       memorySize=memSize;
       first = (node *)base;
-      first->s.size = memorySize / BLOCK_SIZE;
+      blocksAvailable=first->s.size = memorySize / BLOCK_SIZE;
       first->s.next = NULL;
-      printfBR("initialized free list\n");
 }
 
 void *mallocBR(uint32_t nbytes) {
@@ -52,6 +52,7 @@ void *mallocBR(uint32_t nbytes) {
                         current += current->s.size;
                         current->s.size = nblocks;
                   }
+                  blocksAvailable-=current->s.size;
                   return (void *)(current + 1);
             }
       }
@@ -85,8 +86,29 @@ void freeBR(void *ptr) {
       for (currentp = first; currentp->s.next != NULL && !(currentp < insertp && insertp < currentp->s.next); currentp = currentp->s.next)
             ;
 
+      blocksAvailable += insertp->s.size;
+
       joinBlocks(insertp, currentp->s.next);
       joinBlocks(currentp, insertp);
+}
+
+void dumpMM(){
+    uint64_t index = 0;
+    node* p = first;
+    
+    printfBR("Free List MM dump\n");
+    printfBR("    Available memory: %d\n",blocksAvailable*BLOCK_SIZE);
+
+    if(p == NULL)
+        printfBR("    List is empty\n");
+
+    while(p != NULL){
+          printfBR("    Block number %d\n", index);
+          printfBR("        Base: %x\n", (uint64_t)p);
+          printfBR("        Free blocks: %d\n", p->s.size);
+          p = p->s.next;
+          index++;
+    }
 }
 
 static void joinBlocks(node *left, node *right) {

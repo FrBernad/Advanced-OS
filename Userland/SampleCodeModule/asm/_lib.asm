@@ -28,7 +28,7 @@ GLOBAL sys_readPipe
 GLOBAL sys_dumpPipes
 GLOBAL sys_wait
 GLOBAL sys_ticksElapsed
-
+GLOBAL sys_dumpMM
 
 GLOBAL cpuVendor
 GLOBAL cpuModel
@@ -174,6 +174,9 @@ sys_wait:
 
 sys_ticksElapsed:
 	syscall 29
+
+sys_dumpMM:
+	syscall 30
 
 cpuVendor:
 	push rbp

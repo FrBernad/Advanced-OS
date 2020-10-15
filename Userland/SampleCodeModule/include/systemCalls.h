@@ -24,6 +24,7 @@ int sys_ticksElapsed();
 //memory manager
 void *sys_malloc(uint32_t nbytes);
 void sys_free(void* ptr);
+void sys_dumpMM();
 
 //cpue
 void sys_yield();

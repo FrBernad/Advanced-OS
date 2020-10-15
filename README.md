@@ -41,6 +41,7 @@ Los comandos son los siguientes:
 - ***nice:*** cambia la prioridad del proceso cuyo pid es el recibido como argumento.
 - ***block:*** bloquea el proceso cuyo pid es el recibido como argumento.
 - ***unblock:*** desbloquea el proceso cuyo pid es el recibido como argumento.
+- ***mem:*** imprime el estado de toda la memoria del memory manager.
 - ***testProcesses:*** prueba la creacion de procesos con el scheduler.
 - ***testPriority:*** prueba la prioridad del scheduler.
 - ***testSync:*** prueba la sincronizacion de semaforos (debe funcionar).
@@ -100,3 +101,4 @@ Para **pipear** la salida de un comando a la entrada de otro ejecute `commandNam
 | 27   | sys_dumpPipes      |                                 |                       |                   |                     |               |     |
 | 28   | sys_wait           | uint64_t pid                    |                       |                   |                     |               |     |
 | 29   | sys_ticksElapsed   |                                 |                       |                   |                     |               |     |
+| 30   | sys_dumpMM   |                                 |                       |                   |                     |               |     |

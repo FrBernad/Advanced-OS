@@ -25,7 +25,6 @@ void test_mm() {
             // Request as many blocks as we can
             while (rq < MAX_BLOCKS && total < MAX_MEMORY) {
                   mm_rqs[rq].size = GetUniform(MAX_MEMORY - total - 1) + 1;
-                  printfBR("size: %d\n", mm_rqs[rq].size);
                   mm_rqs[rq].address = sys_malloc(mm_rqs[rq].size);
                   if (mm_rqs[rq].address == NULL)
                         printfBR("Malloc returned NULL\n");
@@ -49,7 +48,6 @@ void test_mm() {
             // Free
             for (i = 0; i < rq; i++)
                   if (mm_rqs[i].address != NULL){
-                        printfBR("freeing\n");
                         sys_free(mm_rqs[i].address);
                   }
       }

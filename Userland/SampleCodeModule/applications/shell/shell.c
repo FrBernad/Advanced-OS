@@ -53,6 +53,7 @@ static void initShell(t_shellData* shellData) {
           {&nice, "nice", "changes the priority of process with given pid"},
           {&block, "block", "blocks process with given pid"},
           {&unblock, "unblock", "unblocks process with given pid"},
+          {&dumpMM, "mem", "makes a dump of the memory manager state"},
           {&testProcesses, "testProcesses", "tests scheduler process creation"},
           {&testPriority, "testPriority", "tests scheduler priority"},
           {&testSync, "testSync", "tests sem sync"},
@@ -63,8 +64,7 @@ static void initShell(t_shellData* shellData) {
           {&wc, "wc", "counts the lines recieved from input"},
           {&filter, "filter", "filters the vocals recieved from input"},
           {&cat, "cat", "prints characters from input"},
-          {&phylo, "phylo", "phylosphers dining problem, recieves number of initial phylosophers (max 6, min 2)"}
-      };
+          {&phylo, "phylo", "phylosphers dining problem, recieves number of initial phylosophers (max 6, min 2)"}};
 
       for (int i = 0; i < COMMANDS; i++) {
             shellData->commands[i].command = commandsData[i].command;
