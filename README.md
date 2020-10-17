@@ -103,7 +103,6 @@ Para **pipear** la salida de un comando a la entrada de otro ejecute `commandNam
 | 29   | sys_ticksElapsed   |                                 |                       |                   |                     |               |     |
 | 30   | sys_dumpMM   |                                 |                       |                   |                     |               |     |
 
-
 # Testing
 Para testear con **PVS-Studio** y **Cppcheck** ejecute el siguiente comando:
 ```bash
