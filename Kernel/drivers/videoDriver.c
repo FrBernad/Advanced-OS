@@ -54,7 +54,6 @@ static t_screen screen;
 void initVideoDriver(t_colour BGColour, t_colour FontColour) {
       screen.defaultBGColour = BGColour;
       screen.defaultFontColour = FontColour;
-      screen.blink = 0;
       screen.currentX = 0;
       screen.currentY = 0;
       screen.margin = 2 * CHAR_WIDTH;
@@ -151,21 +150,6 @@ void clearScreen() {
       }
       screen.currentX = 0;
       screen.currentY = 0;
-}
-
-void blinkCursor() {
-      if (screen.blink) {
-            staticputchar('|');
-            screen.blink = 0;
-      } else {
-            staticputchar(' ');
-            screen.blink = 1;
-      }
-}
-
-void stopBlink() {
-      screen.blink = 0;
-      staticputchar(' ');
 }
 
 static int getPixelDataByPosition(uint32_t x, uint32_t y) {

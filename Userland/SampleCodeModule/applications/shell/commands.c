@@ -115,7 +115,6 @@ void checkInvalidOpcodeException(int argc, char** args) {
       if (argc != 1) {
             printfBR("Invalid ammount of arguments.\n");
             return;
-            return;
       }
       invalidOpcodeTrigger();
 }

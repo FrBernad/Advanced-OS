@@ -69,7 +69,7 @@ void phylo(int argc, char** args) {
 }
 
 static int initPhylo(int phyloCount) {
-      char semName[MAX_LENGTH];
+      char semName[MAX_LENGTH]=0;
       char semID[MAX_LENGTH];
       strcpy(SEM_NAME, semName);
 
@@ -97,7 +97,7 @@ static void addPhylosopher() {
             return;
       }
 
-      char semName[MAX_LENGTH];
+      char semName[MAX_LENGTH]=0;
       char semID[MAX_LENGTH];
 
       uint16_t count = phyloCount;

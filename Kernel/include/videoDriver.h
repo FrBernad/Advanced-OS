@@ -13,7 +13,5 @@ void clearScreen();
 void scrollDownScreen();
 void clearLineOnScreen();
 void initVideoDriver(t_colour BGColour, t_colour FontColour);
-void blinkCursor();
-void stopBlink();
 
 #endif

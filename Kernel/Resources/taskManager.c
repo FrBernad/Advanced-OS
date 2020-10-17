@@ -416,7 +416,7 @@ static t_pNode* dequeueProcess() {
 }
 
 static void removeProcess(t_pNode* process) {
-      freeBR(process->pcb.rbp - SIZE_OF_STACK + 1);
+      freeBR((char*)process->pcb.rbp - SIZE_OF_STACK + 1);
       freeBR(process);
 }
 
