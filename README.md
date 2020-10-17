@@ -102,3 +102,15 @@ Para **pipear** la salida de un comando a la entrada de otro ejecute `commandNam
 | 28   | sys_wait           | uint64_t pid                    |                       |                   |                     |               |     |
 | 29   | sys_ticksElapsed   |                                 |                       |                   |                     |               |     |
 | 30   | sys_dumpMM   |                                 |                       |                   |                     |               |     |
+
+
+# Testing
+Para testear con **PVS-Studio** y **Cppcheck** ejecute el siguiente comando:
+```bash
+ make test
+```
+Los resultados de los tests se encontraran en los siguientes archivos:
+ * **PVS-Studio:** *report.tasks*
+ * **Cppcheck:** *output.cppOut*
+
+Para remover los resultados de los tests, ejecute `make cleanTest` en el directorio donde ejecuto `make test`.
