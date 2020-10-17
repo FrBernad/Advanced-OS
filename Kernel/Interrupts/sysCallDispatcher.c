@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <RTCTime.h>
 #include <keyboardDriver.h>
 #include <lib.h>
@@ -46,7 +48,7 @@
 #define SYSCALLS 31
 
 uint64_t sysCallDispatcher(t_registers *r) {
-      if (r->rax >= 0 && r->rax < SYSCALLS) {
+      if (r->rax < SYSCALLS) {
             switch (r->rax) {
                   case SYS_GETMEM_ID:
                         sys_getMem(r->rdi, (uint8_t *)r->rsi);

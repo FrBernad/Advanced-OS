@@ -16,7 +16,7 @@ void staticputchar(char c);
 int getchar();
 void deletechar();
 int strlen(char* str);
-void strcpy(char* str1, char* str2);
+char* strcpy(char* destination, char* source);
 int printfBR(char const* fmt, ...);
 char* strcat(char* destination, char* source);
 #endif

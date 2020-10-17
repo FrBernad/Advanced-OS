@@ -1,7 +1,8 @@
-w#include <utils.h>
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <utils.h>
 #include <buffer.h>
 #include <stddef.h>
-
 
 //sacada de nvconsole
 uint32_t uintToBase(uint64_t value, char *buffer, uint32_t base) {

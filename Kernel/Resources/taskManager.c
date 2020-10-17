@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <interrupts.h>
 #include <keyboardDriver.h>
 #include <lib.h>
@@ -8,7 +10,7 @@
 #include <videoDriver.h>
 #include <timerTick.h>
 
-#define SIZE_OF_STACK 4 * 1024
+#define SIZE_OF_STACK (4 * 1024)
 #define DEFAULT_FG_PRIORITY 2
 #define DEFAULT_BG_PRIORITY 1
 #define MAX_PRIORITY 60
@@ -231,14 +233,9 @@ int currentProcessFg(){
 }
 
 void killForeground() {
-      if (currentProcess != NULL && currentProcess->pcb.fg && currentProcess->pcb.state == READY)
+      if (currentProcess != NULL && currentProcess->pcb.fg && currentProcess->pcb.state == READY){
             killProcess(currentProcess->pcb.pid);
-
-      for (t_pNode* p = processes->first; p != NULL; p = p->next) {
-            if (currentProcess->pcb.fg && currentProcess->pcb.state == READY) {
-                  killProcess(currentProcess->pcb.pid);
-                  return;
-            }
+            return;
       }
 }
 

@@ -1,6 +1,9 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <stdarg.h>
 #include <stringLib.h>
 #include <systemCalls.h>
+#include <stddef.h>
 #include <utils.h>
 
 static int processString(char const* fmt, va_list arg);
@@ -56,12 +59,27 @@ void deletechar() {
       putchar('\b');
 }
 
-void strcpy(char* str1, char* str2){  //copies str1 into str2
-      int i;
-      for (i = 0; str1[i] != 0; i++) {
-            str2[i]=str1[i];
+char* strcpy(char* destination, char* source) {
+      // return if no memory is allocated to the destination
+      if (destination == NULL)
+            return NULL;
+
+      // take a pointer pointing to the beginning of destination string
+      char* ptr = destination;
+
+      // copy the C-string pointed by source into the array
+      // pointed by destination
+      while (*source != '\0') {
+            *destination = *source;
+            destination++;
+            source++;
       }
-      str2[i]=0;
+
+      // include the terminating null character
+      *destination = '\0';
+
+      // destination is returned by standard strcpy()
+      return ptr;
 }
 
 int printfBR(char const* fmt, ...) {

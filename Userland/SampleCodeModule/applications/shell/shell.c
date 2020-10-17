@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <commands.h>
 #include <keys.h>
 #include <lib.h>
@@ -73,7 +75,7 @@ static void initShell(t_shellData* shellData) {
       }
 
       cleanBuffer(&shellData->buffer);
-      strcpy("USER", shellData->username);
+      strcpy(shellData->username, "USER");
       shellText(shellData);
 }
 
@@ -259,7 +261,7 @@ void changeUsername(int argc, char** argv) {
             return;
       }
       cleanString(shell.username);
-      strcpy(argv[1], shell.username);
+      strcpy(shell.username, argv[1]);
 }
 
 //muestra la lista de comandos con sus descripciones

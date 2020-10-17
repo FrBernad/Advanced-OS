@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <pipes.h>
 #include <semaphores.h>
 #include <stdint.h>
@@ -38,6 +40,7 @@ static t_pipes pipes;
 
 int initPipes() {
       if ((pipes.lock = sem_open("pipes_lock", 1)) == -1) {
+            printfBR("error initing pipes\n");
             return -1;
       }
       return 0;

@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <phylo.h>
 #include <stringLib.h>
 #include <systemCalls.h>
@@ -69,9 +71,9 @@ void phylo(int argc, char** args) {
 }
 
 static int initPhylo(int phyloCount) {
-      char semName[MAX_LENGTH]=0;
+      char semName[MAX_LENGTH]={0};
       char semID[MAX_LENGTH];
-      strcpy(SEM_NAME, semName);
+      strcpy(semName,SEM_NAME);
 
       for (int i = 0; i < phyloCount; i++) {
             uintToBase(i, semID, 10);
@@ -97,12 +99,12 @@ static void addPhylosopher() {
             return;
       }
 
-      char semName[MAX_LENGTH]=0;
+      char semName[MAX_LENGTH]={0};
       char semID[MAX_LENGTH];
 
       uint16_t count = phyloCount;
 
-      strcpy(SEM_NAME, semName);
+      strcpy(semName,SEM_NAME);
 
       uintToBase(count, semID, 10);
       strcat(semName, semID);

@@ -1,10 +1,12 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <stddef.h>
 #include <stdint.h>
 #include <stringLib.h>
 #include <systemCalls.h>
 #include <utils.h>
 
-#define MINOR_WAIT 1000000*2
+#define MINOR_WAIT (1000000*2)
 #define TOTAL_PROCESSES 3
 
 static uint64_t my_getpid();
