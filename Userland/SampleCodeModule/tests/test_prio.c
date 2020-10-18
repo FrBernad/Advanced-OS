@@ -34,10 +34,10 @@ void test_priority() {
                         my_nice(pids[i], 0);  //lowest priority
                         break;
                   case 1:
-                        my_nice(pids[i], 1);  //medium priority
+                        my_nice(pids[i], 3);  //medium priority
                         break;
                   case 2:
-                        my_nice(pids[i], 2);  //highest priority
+                        my_nice(pids[i], 6);  //highest priority
                         break;
             }
       }

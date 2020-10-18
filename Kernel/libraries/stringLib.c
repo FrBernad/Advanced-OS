@@ -83,16 +83,6 @@ void staticputchar(char c){
       sys_staticwrite(&c, 1, BLACK, WHITE);
 }
 
-int printfBR(char const *fmt, ...) {
-      va_list arg;
-      int length;
-
-      va_start(arg, fmt);
-      length = processString(fmt, arg);
-      va_end(arg);
-      return length;
-}
-
 char* strcat(char* destination, char* source) {
       // make ptr point to the end of destination string
       char* ptr = destination + strlen(destination);
@@ -107,6 +97,7 @@ char* strcat(char* destination, char* source) {
       // destination is returned by standard strcat()
       return destination;
 }
+
 
 char* strcpy(char* destination, char* source) {
       // return if no memory is allocated to the destination
@@ -129,6 +120,16 @@ char* strcpy(char* destination, char* source) {
 
       // destination is returned by standard strcpy()
       return ptr;
+}
+
+int printfBR(char const *fmt, ...) {
+      va_list arg;
+      int length;
+
+      va_start(arg, fmt);
+      length = processString(fmt, arg);
+      va_end(arg);
+      return length;
 }
 
 static int processString(char const *fmt, va_list arg) {

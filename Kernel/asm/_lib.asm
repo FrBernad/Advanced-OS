@@ -13,9 +13,6 @@ GLOBAL callTimerTick
 GLOBAL lock_region
 GLOBAL unlock_region
 
-EXTERN scheduler
-
-
 section .text
 
 %macro pushaq 0

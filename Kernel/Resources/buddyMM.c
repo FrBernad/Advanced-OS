@@ -9,7 +9,7 @@
 #include <utils.h>
 
 #define MIN_ALLOC_LOG_2 6                  //64 B min aloc
-#define MAX_LEVELS (30 - MIN_ALLOC_LOG_2)  ////1GB MB max aloc
+#define MAX_LEVELS (30 - MIN_ALLOC_LOG_2)  //1GB MB max aloc
 
 #define BIN_POW(x) (1 << (x))
 
@@ -33,7 +33,6 @@ static int getFirstAvailableLevel(uint8_t minLevel);
 static list_t *getBuddy(list_t *node);
 static list_t *getAdress(list_t *node);
 
-//Global variables
 static list_t *base;
 static uint32_t maxMemSize;
 static list_t levelsList[MAX_LEVELS];
